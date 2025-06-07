@@ -1,0 +1,227 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import GameBoard from '../components/GameBoard.jsx';
+import TimerBar from '../components/TimerBar.jsx';
+import './DemoPage.css';
+
+// 演示用的模拟数据
+const DEMO_INITIAL_HAND = [
+  { id: 'demo1', title: '忘记带钥匙', imgUrl: '/api/placeholder/150/200', badLuckIdx: 15.2 },
+  { id: 'demo2', title: '下雨没带伞', imgUrl: '/api/placeholder/150/200', badLuckIdx: 25.8 },
+  { id: 'demo3', title: '手机没电', imgUrl: '/api/placeholder/150/200', badLuckIdx: 45.6 }
+];
+
+const DEMO_HIDDEN_CARD = {
+  id: 'demo4', 
+  title: '错过公交车', 
+  imgUrl: '/api/placeholder/150/200', 
+  badLuckIdx: 32.4
+};
+
+export default function DemoPage() {
+  const [gameState, setGameState] = useState('intro'); // 'intro', 'playing', 'correct', 'wrong', 'timeout'
+  const [hand, setHand] = useState(DEMO_INITIAL_HAND);
+  const [hiddenCard, setHiddenCard] = useState(DEMO_HIDDEN_CARD);
+  const [wrongGuess, setWrongGuess] = useState(false);
+  const [userGuess, setUserGuess] = useState(null);
+  const [timerKey, setTimerKey] = useState(0);
+
+  const handleStartGame = () => {
+    setGameState('playing');
+    setTimerKey(prev => prev + 1); // 重置计时器
+  };
+
+  const handleGuess = (position) => {
+    if (gameState !== 'playing') return;
+
+    setUserGuess(position);
+    
+    // 检查答案：正确答案应该是位置2（在25.8和45.6之间）
+    const correctPosition = 2;
+    
+    if (position === correctPosition) {
+      // 答对了
+      setGameState('correct');
+      setWrongGuess(false);
+      
+      // 更新手牌显示
+      const newHand = [...hand];
+      newHand.splice(position, 0, hiddenCard);
+      setHand(newHand);
+      setHiddenCard(null);
+    } else {
+      // 答错了
+      setGameState('wrong');
+      setWrongGuess(true);
+      setTimeout(() => setWrongGuess(false), 500);
+    }
+  };
+
+  const handleTimeUp = () => {
+    if (gameState === 'playing') {
+      setGameState('timeout');
+      setWrongGuess(true);
+      setTimeout(() => setWrongGuess(false), 500);
+    }
+  };
+
+  const resetDemo = () => {
+    setGameState('intro');
+    setHand(DEMO_INITIAL_HAND);
+    setHiddenCard(DEMO_HIDDEN_CARD);
+    setWrongGuess(false);
+    setUserGuess(null);
+  };
+
+  if (gameState === 'intro') {
+    return (
+      <div className="demo-page">
+        <div className="demo-intro">
+          <h1 className="demo-title">🎮 Stuff Happens - 演示版</h1>
+          <div className="demo-explanation">
+            <h2>演示说明</h2>
+            <p>这是一个单轮演示，帮助您了解游戏玩法：</p>
+            <ul className="demo-rules">
+              <li>您将看到3张已排序的卡片，显示它们的坏运指数</li>
+              <li>需要将新出现的卡片拖拽到正确位置</li>
+              <li>记住：坏运指数越低 = 越不倒霉 = 越靠前</li>
+              <li>您有30秒时间做决定</li>
+            </ul>
+            
+            <div className="current-hand-preview">
+              <h3>当前手牌预览：</h3>
+              <div className="hand-preview">
+                {DEMO_INITIAL_HAND.map((card, idx) => (
+                  <div key={card.id} className="preview-card">
+                    <span className="preview-position">{idx + 1}</span>
+                    <span className="preview-title">{card.title}</span>
+                    <span className="preview-index">{card.badLuckIdx}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="challenge-card">
+              <h3>挑战卡片：</h3>
+              <div className="preview-card challenge">
+                <span className="preview-title">{DEMO_HIDDEN_CARD.title}</span>
+                <span className="preview-question">坏运指数：???</span>
+              </div>
+              <p className="challenge-hint">
+                想想看，"{DEMO_HIDDEN_CARD.title}"应该插入到哪个位置？
+              </p>
+            </div>
+          </div>
+
+          <button onClick={handleStartGame} className="btn-start-demo">
+            开始演示游戏 🚀
+          </button>
+          
+          <div className="demo-footer">
+            <Link to="/rules" className="link-rules">📖 查看完整规则</Link>
+            <Link to="/" className="link-login">🔑 登录玩完整版</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'correct') {
+    return (
+      <div className="demo-page">
+        <div className="demo-result success">
+          <h2>🎉 恭喜答对了！</h2>
+          <p>"{DEMO_HIDDEN_CARD.title}"的坏运指数是 <strong>{DEMO_HIDDEN_CARD.badLuckIdx}</strong></p>
+          <p>您正确地将它放在了第 {userGuess + 1} 个位置！</p>
+          
+          <div className="final-hand">
+            <h3>最终排序：</h3>
+            <div className="hand-display">
+              {hand.map((card, idx) => (
+                <div key={card.id} className="result-card">
+                  <span className="card-position">{idx + 1}</span>
+                  <span className="card-title">{card.title}</span>
+                  <span className="card-index">{card.badLuckIdx}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="demo-complete-actions">
+            <button onClick={resetDemo} className="btn-retry">
+              🔄 再试一次
+            </button>
+            <Link to="/rules" className="btn-rules">
+              📖 查看完整规则
+            </Link>
+            <Link to="/" className="btn-register">
+              🎮 注册玩完整版
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'wrong' || gameState === 'timeout') {
+    return (
+      <div className="demo-page">
+        <div className="demo-result failure">
+          <h2>😅 {gameState === 'timeout' ? '时间到了！' : '答错了！'}</h2>
+          <p>正确答案："{DEMO_HIDDEN_CARD.title}"应该放在第 3 个位置</p>
+          <p>因为它的坏运指数是 <strong>{DEMO_HIDDEN_CARD.badLuckIdx}</strong>，在 25.8 和 45.6 之间</p>
+          
+          <div className="explanation">
+            <h3>解释：</h3>
+            <p>卡片应该按坏运指数从低到高排列：</p>
+            <div className="correct-order">
+              <div className="order-item">忘记带钥匙 (15.2)</div>
+              <div className="order-item">下雨没带伞 (25.8)</div>
+              <div className="order-item highlight">→ 错过公交车 (32.4) ←</div>
+              <div className="order-item">手机没电 (45.6)</div>
+            </div>
+          </div>
+
+          <div className="demo-complete-actions">
+            <button onClick={resetDemo} className="btn-retry">
+              🔄 再试一次
+            </button>
+            <Link to="/rules" className="btn-rules">
+              📖 学习完整规则
+            </Link>
+            <Link to="/" className="btn-register">
+              🎮 注册玩完整版
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 游戏进行中
+  return (
+    <div className="demo-page">
+      <div className="demo-game-header">
+        <h2>🎮 演示游戏进行中</h2>
+        <p>将 "{hiddenCard.title}" 拖拽到正确位置</p>
+      </div>
+
+      <TimerBar
+        duration={30}
+        onTimeUp={handleTimeUp}
+        resetSignal={timerKey}
+      />
+
+      <GameBoard
+        hand={hand}
+        hiddenCard={hiddenCard}
+        wrongGuess={wrongGuess}
+        onDrop={handleGuess}
+      />
+
+      <div className="demo-hints">
+        <p>💡 提示：观察已有卡片的坏运指数，思考新卡片应该在哪里</p>
+      </div>
+    </div>
+  );
+}
