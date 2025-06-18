@@ -1,104 +1,133 @@
 /* File: client/src/components/GameBoard.css */
 
-/* 只对手牌中的卡片图片禁用拖拽，不影响隐藏卡片 */
+/* 禁用手牌中的卡片图片拖拽 */
 .hand-slot .card-image {
   -webkit-user-drag: none;
   user-select: none;
 }
 
+/* 游戏盘容器 */
 .game-board-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 2rem;
+  position: relative;
 }
 
+/* 手牌容器 */
 .hand-container {
   display: flex;
   gap: 1rem;
   margin-bottom: 3rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
+/* 手牌槽位 */
 .hand-slot {
   width: 120px;
   height: 200px;
   border: 2px dashed #ccc;
   border-radius: 8px;
   background-color: #fafafa;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/* 手牌槽位拖放高亮 */
 .hand-slot-drag-over {
-  background-color: #e0f7fa;
-  border-color: #00acc1;
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+  border-style: solid;
+  box-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
+  transform: scale(1.02);
 }
 
+/* 卡片项目基础样式 */
 .card-item {
   width: 100%;
   height: 100%;
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.card-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* 占位符样式 */
 .card-placeholder {
-  background-color: #e3f2fd;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
   border: 2px dashed #2196f3;
-  opacity: 0.8;
+  opacity: 0.9;
+  animation: pulse 1s ease-in-out infinite;
 }
 
-.card-placeholder-image {
-  width: 100%;
-  height: 70%;
-  background-color: #bbdefb;
-  background-image: linear-gradient(
-    45deg,
-    transparent 25%,
-    rgba(255,255,255,0.3) 25%,
-    rgba(255,255,255,0.3) 50%,
-    transparent 50%,
-    transparent 75%,
-    rgba(255,255,255,0.3) 75%
-  );
-  background-size: 20px 20px;
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
-.card-placeholder-title {
-  padding: 0.5rem;
-  text-align: center;
-  font-size: 0.9rem;
-  background-color: #e3f2fd;
-  color: #1976d2;
-  font-style: italic;
-}
-
+/* 卡片图片 */
 .card-image {
   width: 100%;
   height: 70%;
   object-fit: cover;
+  transition: transform 0.2s ease;
 }
 
+/* 占位符图片 */
+.card-placeholder-image {
+  width: 100%;
+  height: 70%;
+  background: linear-gradient(45deg, #bbdefb 25%, transparent 25%),
+              linear-gradient(-45deg, #bbdefb 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, #bbdefb 75%),
+              linear-gradient(-45deg, transparent 75%, #bbdefb 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  animation: move-bg 2s linear infinite;
+}
+
+@keyframes move-bg {
+  0% { background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
+  100% { background-position: 20px 20px, 20px 30px, 30px 10px, 10px 20px; }
+}
+
+/* 卡片标题 */
 .card-title {
   padding: 0.5rem;
   text-align: center;
   font-size: 0.9rem;
   background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
 }
 
+.card-placeholder-title {
+  background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+  color: #1976d2;
+  font-style: italic;
+  font-weight: bold;
+}
+
+/* 卡片索引 */
 .card-index {
   font-size: 0.8rem;
-  color: #555;
+  color: #666;
   text-align: center;
   margin-top: 0.25rem;
+  font-weight: 500;
 }
 
 /* 隐藏卡部分 */
@@ -111,42 +140,160 @@
 .hidden-card {
   width: 100%;
   height: 100%;
-  background-color: #fff3e0;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   cursor: grab;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
+.hidden-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+.hidden-card:active {
+  cursor: grabbing;
+}
+
+/* 拖拽状态 */
 .hidden-card-dragging {
-  opacity: 0.7;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  cursor: grabbing;
+  z-index: 1000;
 }
 
+/* 错误状态动画 */
 .hidden-card-wrong {
-  animation: shake 0.3s ease-in-out;
-  border: 2px solid #e53935;
+  animation: shake 0.5s ease-in-out;
+  border: 3px solid #f44336;
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.5);
 }
 
+/* 空槽位 */
 .empty {
   width: 100%;
   height: 100%;
-  border: 2px dashed #ccc;
+  border: 2px dashed #ddd;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #999;
   font-size: 0.9rem;
+  font-style: italic;
+  background: linear-gradient(45deg, transparent 49%, #f0f0f0 49%, #f0f0f0 51%, transparent 51%);
+  background-size: 10px 10px;
 }
 
+/* 拖拽预览元素 */
+.drag-preview {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #2196f3;
+  transform: rotate(5deg) scale(0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* 拖拽提示 */
+.drag-hint {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(45deg, #2196f3, #21cbf3);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  box-shadow: 0 4px 20px rgba(33, 150, 243, 0.3);
+  z-index: 1000;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 摇摆动画 */
 @keyframes shake {
-  0%   { transform: translateX(0) rotate(0deg); }
-  25%  { transform: translateX(-5px) rotate(-2deg); }
-  50%  { transform: translateX(5px) rotate(2deg); }
-  75%  { transform: translateX(-5px) rotate(-2deg); }
-  100% { transform: translateX(0) rotate(0deg); }
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(-10px) rotate(-3deg); }
+  20% { transform: translateX(10px) rotate(3deg); }
+  30% { transform: translateX(-10px) rotate(-3deg); }
+  40% { transform: translateX(10px) rotate(3deg); }
+  50% { transform: translateX(-5px) rotate(-1deg); }
+  60% { transform: translateX(5px) rotate(1deg); }
+  70% { transform: translateX(-5px) rotate(-1deg); }
+  80% { transform: translateX(5px) rotate(1deg); }
+  90% { transform: translateX(-2px) rotate(0deg); }
+}
+
+/* 隐藏卡片的特殊样式 */
+.card-image-hidden {
+  border-radius: 8px 8px 0 0;
+}
+
+.card-title-hidden {
+  background: linear-gradient(45deg, #fff3e0, #ffe0b2);
+  color: #f57c00;
+  font-weight: bold;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .hand-container {
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .hand-slot {
+    width: 100px;
+    height: 160px;
+  }
+  
+  .hidden-card-container {
+    width: 100px;
+    height: 160px;
+  }
+  
+  .card-title {
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
+  
+  .card-index {
+    font-size: 0.7rem;
+  }
+  
+  .drag-hint {
+    font-size: 0.9rem;
+    padding: 0.8rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hand-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .hand-slot,
+  .hidden-card-container {
+    width: 120px;
+    height: 180px;
+  }
 }

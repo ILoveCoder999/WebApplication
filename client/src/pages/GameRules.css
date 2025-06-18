@@ -1,0 +1,192 @@
+.rules-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rules-container {
+  max-width: 800px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 3rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.rules-title {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #2c3e50;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rules-section {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 15px;
+  border-left: 4px solid #3498db;
+}
+
+.rules-section h2 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.rules-section p {
+  line-height: 1.6;
+  color: #34495e;
+  margin-bottom: 1rem;
+}
+
+.rules-list {
+  padding-left: 1.5rem;
+  color: #34495e;
+}
+
+.rules-list li {
+  margin-bottom: 0.8rem;
+  line-height: 1.5;
+}
+
+.badluck-explanation {
+  text-align: center;
+}
+
+.example-cards {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.example-card {
+  padding: 1rem;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  min-width: 120px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.example-card.low {
+  background: linear-gradient(135deg, #4caf50, #8bc34a);
+}
+
+.example-card.medium {
+  background: linear-gradient(135deg, #ff9800, #ffb74d);
+}
+
+.example-card.high {
+  background: linear-gradient(135deg, #f44336, #e57373);
+}
+
+.time-indicators {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+.time-indicators li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.color-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 1rem;
+  display: inline-block;
+}
+
+.color-indicator.green {
+  background-color: #4caf50;
+}
+
+.color-indicator.orange {
+  background-color: #ff9800;
+}
+
+.color-indicator.red {
+  background-color: #e53935;
+}
+
+.rules-actions {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+.btn-demo,
+.btn-login {
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+}
+
+.btn-demo {
+  background: linear-gradient(45deg, #4caf50, #8bc34a);
+  color: white;
+}
+
+.btn-demo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.btn-login {
+  background: linear-gradient(45deg, #2196f3, #21cbf3);
+  color: white;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .rules-page {
+    padding: 1rem;
+  }
+  
+  .rules-container {
+    padding: 2rem;
+  }
+  
+  .rules-title {
+    font-size: 2rem;
+  }
+  
+  .example-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .rules-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn-demo,
+  .btn-login {
+    width: 100%;
+    max-width: 200px;
+  }
+}
