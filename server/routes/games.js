@@ -50,6 +50,17 @@ router.post('/games', auth, (req, res) => {
   }
 });
 
+router.get('/games', auth, (req, res) => {
+  try {
+    const games = db.prepare('SELECT * FROM games WHERE userId = ?').all(req.session.userId);
+    res.json(games);
+  } catch (error) {
+    console.error('Error fetching games:', error);
+    res.status(500).json({ message: 'Failed to fetch games' });
+  }
+});
+
+
 // 2. 获取下一张"待猜卡"（随机一张卡）
 router.get('/games/:id/next', auth, (req, res) => {
   try {

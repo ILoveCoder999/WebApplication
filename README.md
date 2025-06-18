@@ -61,22 +61,9 @@ stuff-happens/
     │   │
     │   ├── context/          # React Context
     │   │   └── AuthContext.jsx # 认证上下文
-    │   │
-    │   ├── hooks/            # 自定义Hook
-    │   │   ├── useAuth.js    # 认证Hook
-    │   │   ├── useGame.js    # 游戏Hook
-    │   │   └── useLocalStorage.js
-    │   │
-    │   ├── utils/            # 工具函数
-    │   │   ├── api.js        # API请求封装
-    │   │   ├── constants.js  # 常量定义
-    │   │   └── helpers.js    # 辅助函数
-    │   │
-    │   └── assets/           # 静态资源
-    │       ├── images/       # 图片
-    │       ├── icons/        # 图标
-    │       └── fonts/        # 字体
-    │
+    │   ├── assets/          
+    │   │   └── images 
+    │   
     
 ```
 

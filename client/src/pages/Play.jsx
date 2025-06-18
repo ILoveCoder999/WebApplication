@@ -36,9 +36,13 @@ export default function Play() {
         console.log('🎮 Starting new game...');
         
         // 创建新游戏
-        const res = await axios.post('/api/games');
-        const { gameId, hand: initialHand } = res.data;
-        
+        //const res = await axios.post('/api/games');
+        //const { gameId, hand: initialHand } = res.data;
+        const res = await axios.post('/api/games', {}, { withCredentials: true });
+const { gameId, hand: initialHand } = res.data;
+if (!gameId) {
+  throw new Error('No gameId returned from create game API');
+}
         console.log(`🎯 Game created: ${gameId}`);
         console.log('🃏 Initial hand:', initialHand);
         
@@ -47,7 +51,9 @@ export default function Play() {
         setHand(initialHand);
 
         // 获取第一张待猜卡
-        const nextRes = await axios.get(`/api/games/${gameId}/next`);
+        //const nextRes = await axios.get(`/api/games/${gameId}/next`);
+        const nextRes = await axios.get(`/api/games/${gameId}/next`, { withCredentials: true });
+
         console.log('🎴 Next card:', nextRes.data);
         
         setHiddenCard(nextRes.data);
