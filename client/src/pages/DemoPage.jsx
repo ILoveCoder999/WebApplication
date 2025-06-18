@@ -4,17 +4,24 @@ import GameBoard from '../components/GameBoard.jsx';
 import TimerBar from '../components/TimerBar.jsx';
 import './DemoPage.css';
 
-// 演示用的模拟数据
+// 导入图片资源
+import missedFlightImg from '../assets/images/1missed-flight.png';
+import lostLuggageImg from '../assets/images/2lost-luggage.png';  
+import passportIssueImg from '../assets/images/3passport-issue.png';
+import hotelFullImg from '../assets/images/4hotel-full.png';
+
+
+// 演示用的模拟数据 - 使用旅行相关的倒霉事件
 const DEMO_INITIAL_HAND = [
-  { id: 'demo1', title: '忘记带钥匙', imgUrl: '/api/placeholder/150/200', badLuckIdx: 15.2 },
-  { id: 'demo2', title: '下雨没带伞', imgUrl: '/api/placeholder/150/200', badLuckIdx: 25.8 },
-  { id: 'demo3', title: '手机没电', imgUrl: '/api/placeholder/150/200', badLuckIdx: 45.6 }
+  { id: 'demo1', title: '错过航班', imgUrl: missedFlightImg, badLuckIdx: 15.2 },
+  { id: 'demo2', title: '行李丢失', imgUrl: lostLuggageImg, badLuckIdx: 25.8 },
+  { id: 'demo3', title: '护照问题', imgUrl: passportIssueImg, badLuckIdx: 45.6 }
 ];
 
 const DEMO_HIDDEN_CARD = {
   id: 'demo4', 
-  title: '错过公交车', 
-  imgUrl: '/api/placeholder/150/200', 
+  title: '酒店客满', 
+  imgUrl: hotelFullImg, 
   badLuckIdx: 32.4
 };
 
@@ -175,10 +182,10 @@ export default function DemoPage() {
             <h3>解释：</h3>
             <p>卡片应该按坏运指数从低到高排列：</p>
             <div className="correct-order">
-              <div className="order-item">忘记带钥匙 (15.2)</div>
-              <div className="order-item">下雨没带伞 (25.8)</div>
-              <div className="order-item highlight">→ 错过公交车 (32.4) ←</div>
-              <div className="order-item">手机没电 (45.6)</div>
+              <div className="order-item">错过航班 (15.2)</div>
+              <div className="order-item">行李丢失 (25.8)</div>
+              <div className="order-item highlight">→ 酒店客满 (32.4) ←</div>
+              <div className="order-item">护照问题 (45.6)</div>
             </div>
           </div>
 
