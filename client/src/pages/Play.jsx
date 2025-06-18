@@ -1,6 +1,6 @@
 // File: client/src/pages/Play.jsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import GameBoard from '../components/GameBoard.jsx';
 import TimerBar from '../components/TimerBar.jsx';
@@ -17,42 +17,67 @@ export default function Play() {
   const [roundIndex, setRoundIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // 防止重复初始化
+  const initialized = useRef(false);
+  const currentGameId = useRef(null);
 
   // 初始化游戏
   useEffect(() => {
+    // 防止重复初始化
+    if (initialized.current) return;
+    initialized.current = true;
+
     async function startGame() {
       try {
         setLoading(true);
         setError('');
         
+        console.log('🎮 Starting new game...');
+        
         // 创建新游戏
         const res = await axios.post('/api/games');
         const { gameId, hand: initialHand } = res.data;
+        
+        console.log(`🎯 Game created: ${gameId}`);
+        console.log('🃏 Initial hand:', initialHand);
+        
         setGameId(gameId);
+        currentGameId.current = gameId;
         setHand(initialHand);
 
         // 获取第一张待猜卡
         const nextRes = await axios.get(`/api/games/${gameId}/next`);
+        console.log('🎴 Next card:', nextRes.data);
+        
         setHiddenCard(nextRes.data);
-
         setRoundIndex(0);
         setLoading(false);
       } catch (err) {
         console.error('Failed to start game:', err);
-        setError('游戏启动失败，请刷新页面重试');
+        if (err.response?.status === 401) {
+          setError('请先登录');
+        } else {
+          setError('游戏启动失败，请刷新页面重试');
+        }
         setLoading(false);
       }
     }
     
     startGame();
-  }, []);
+  }, []); // 空依赖数组，只运行一次
 
   // 处理猜测
   const handleGuess = async (position) => {
-    if (!hiddenCard || gameId === null || isGameOver || loading) return;
+    if (!hiddenCard || !currentGameId.current || isGameOver || loading) {
+      console.log('❌ Cannot guess:', { hiddenCard: !!hiddenCard, gameId: currentGameId.current, isGameOver, loading });
+      return;
+    }
 
     try {
-      const res = await axios.post(`/api/games/${gameId}/guess`, {
+      console.log(`🎯 Making guess: position=${position}, cardId=${hiddenCard.id}`);
+      
+      const res = await axios.post(`/api/games/${currentGameId.current}/guess`, {
         position,
         cardId: hiddenCard.id,
       });
@@ -63,6 +88,8 @@ export default function Play() {
         isGameOver: over,
         finalStatus: status,
       } = res.data;
+
+      console.log(`📊 Guess result:`, { correct, newWrongCount, over, status });
 
       setWrongCount(newWrongCount);
       setIsGameOver(over);
@@ -76,18 +103,28 @@ export default function Play() {
         const newHand = [...hand];
         newHand.splice(position, 0, hiddenCard);
         setHand(newHand);
+        
+        console.log('✅ Correct! New hand:', newHand);
 
         if (!over) {
-          // 获取下一张卡
-          const nextRes = await axios.get(`/api/games/${gameId}/next`);
-          setHiddenCard(nextRes.data);
-          setRoundIndex(prev => prev + 1);
+          try {
+            // 获取下一张卡
+            const nextRes = await axios.get(`/api/games/${currentGameId.current}/next`);
+            console.log('🎴 Next card:', nextRes.data);
+            setHiddenCard(nextRes.data);
+            setRoundIndex(prev => prev + 1);
+          } catch (nextErr) {
+            console.error('Failed to get next card:', nextErr);
+            setError('获取下一张卡片失败');
+          }
         } else {
           // 游戏胜利
+          console.log('🎉 Game won!');
           setHiddenCard(null);
         }
       } else {
         // 猜错了
+        console.log('❌ Wrong guess!');
         setWrongGuess(true);
         setTimeout(() => setWrongGuess(false), 500);
 
@@ -96,6 +133,7 @@ export default function Play() {
           setRoundIndex(prev => prev + 1);
         } else {
           // 游戏失败
+          console.log('💀 Game lost!');
           setHiddenCard(null);
         }
       }
@@ -107,12 +145,16 @@ export default function Play() {
 
   // 超时处理
   const handleTimeUp = () => {
-    if (!hiddenCard || gameId === null || isGameOver) return;
+    console.log('⏰ Time up!');
+    if (!hiddenCard || !currentGameId.current || isGameOver) return;
     handleGuess(-1); // -1 表示超时
   };
 
   // 重新开始游戏
   const handleRestart = () => {
+    console.log('🔄 Restarting game...');
+    initialized.current = false;
+    currentGameId.current = null;
     window.location.reload();
   };
 
@@ -127,8 +169,15 @@ export default function Play() {
           flexDirection: 'column',
           gap: '1rem'
         }}>
-          <div className="loading-spinner"></div>
-          <p>正在启动游戏...</p>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #ffffff40',
+            borderTop: '4px solid white',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <p style={{ color: 'white', fontSize: '1.2rem' }}>正在启动游戏...</p>
         </div>
       </div>
     );
@@ -145,7 +194,7 @@ export default function Play() {
           margin: '2rem auto',
           maxWidth: '400px'
         }}>
-          <h2 style={{ color: '#e74c3c', marginBottom: '1rem' }}>出错了</h2>
+          <h2 style={{ color: '#e74c3c', marginBottom: '1rem' }}>⚠️ 出错了</h2>
           <p style={{ marginBottom: '1.5rem' }}>{error}</p>
           <button
             onClick={handleRestart}
@@ -155,10 +204,11 @@ export default function Play() {
               padding: '0.75rem 1.5rem',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '1rem'
             }}
           >
-            重新开始
+            🔄 重新开始
           </button>
         </div>
       </div>
@@ -171,27 +221,28 @@ export default function Play() {
         <div style={{
           textAlign: 'center',
           padding: '3rem',
-          background: 'rgba(255, 255, 255, 0.9)',
+          background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: '20px',
           margin: '2rem auto',
-          maxWidth: '500px'
+          maxWidth: '500px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
         }}>
           {finalStatus === 'won' ? (
             <>
-              <h2 className="result-message" style={{ color: '#27ae60' }}>
+              <h2 style={{ color: '#27ae60', fontSize: '2rem', marginBottom: '1rem' }}>
                 🎉 恭喜胜利！🎉
               </h2>
-              <p style={{ marginBottom: '2rem' }}>
+              <p style={{ marginBottom: '2rem', fontSize: '1.1rem' }}>
                 您成功排列了所有卡片！<br/>
                 失误次数：{wrongCount}/3
               </p>
             </>
           ) : (
             <>
-              <h2 className="result-message" style={{ color: '#e74c3c' }}>
+              <h2 style={{ color: '#e74c3c', fontSize: '2rem', marginBottom: '1rem' }}>
                 😔 游戏结束 😔
               </h2>
-              <p style={{ marginBottom: '2rem' }}>
+              <p style={{ marginBottom: '2rem', fontSize: '1.1rem' }}>
                 您已经失误了 3 次<br/>
                 不要灰心，再试一次！
               </p>
@@ -199,7 +250,6 @@ export default function Play() {
           )}
           
           <button
-            className="btn-restart"
             onClick={handleRestart}
             style={{
               background: 'linear-gradient(45deg, #3498db, #2980b9)',
@@ -209,7 +259,8 @@ export default function Play() {
               borderRadius: '10px',
               fontSize: '1.1rem',
               fontWeight: 'bold',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: '0 4px 15px rgba(52, 152, 219, 0.3)'
             }}
           >
             🔄 再玩一次
@@ -221,8 +272,26 @@ export default function Play() {
 
   return (
     <div className="play-page">
-      <h2 className="play-header">🎮 Stuff Happens - 游戏进行中</h2>
-      <p className="status-text">失误次数: {wrongCount} / 3</p>
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '2rem',
+        color: 'white'
+      }}>
+        <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+          🎮 Stuff Happens
+        </h2>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '2rem',
+          fontSize: '1.1rem'
+        }}>
+          <span>游戏 #{gameId}</span>
+          <span>失误: {wrongCount}/3</span>
+          <span>手牌: {hand.length}/6</span>
+        </div>
+      </div>
 
       <TimerBar
         duration={30}
@@ -243,13 +312,27 @@ export default function Play() {
           marginTop: '1rem',
           padding: '1rem',
           background: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '10px'
+          borderRadius: '10px',
+          backdropFilter: 'blur(10px)'
         }}>
-          <p style={{ color: 'white', margin: 0 }}>
-            💡 提示：将 "{hiddenCard.title}" 拖拽到正确位置
+          <p style={{ color: 'white', margin: 0, fontSize: '1rem' }}>
+            💡 <strong>提示</strong>：将 "<strong>{hiddenCard.title}</strong>" 拖拽到正确位置
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.8)', margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
+            记住：坏运指数越低越靠前！
           </p>
         </div>
       )}
     </div>
   );
 }
+
+// 添加旋转动画的CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);

@@ -4,8 +4,8 @@ import axios from 'axios';
 export const AuthCtx = createContext(null);
 
 // 配置 axios 默认设置
-axios.defaults.baseURL = 'http://localhost:4000';  // 后端服务器地址
-axios.defaults.withCredentials = true;              // 发送 cookies
+axios.defaults.baseURL = 'http://localhost:4000';
+axios.defaults.withCredentials = true;
 
 export function AuthProvider({children}){
   const [user, setUser] = useState(null);
@@ -15,10 +15,11 @@ export function AuthProvider({children}){
     // 检查用户是否已登录
     axios.get('/api/me')
       .then(res => {
+        console.log('✅ User authenticated:', res.data);
         setUser(res.data);
       })
       .catch(err => {
-        console.log('User not logged in:', err.response?.status);
+        console.log('ℹ️ User not authenticated:', err.response?.status);
         setUser(null);
       })
       .finally(() => {
@@ -51,7 +52,7 @@ export function AuthProvider({children}){
             borderRadius: '50%',
             animation: 'spin 1s linear infinite'
           }}></div>
-          加载中...
+          初始化中...
         </div>
       </div>
     );

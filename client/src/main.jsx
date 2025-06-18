@@ -6,11 +6,12 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  // 临时移除 StrictMode 避免开发环境下的重复渲染
+  // <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <App/>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  // </React.StrictMode>
 );
