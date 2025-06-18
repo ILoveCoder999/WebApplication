@@ -1,8 +1,0 @@
-{
-  "name": "stuff-happens-root",
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\""
-  }
-}
-
