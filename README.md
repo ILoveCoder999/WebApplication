@@ -13,6 +13,7 @@ stuff-happens/
 │   ├── package.json            # 后端依赖配置
 │   ├── package-lock.json       # 后端依赖锁定
 │   ├── index.mjs               # 服务器入口文件
+     ── server.js               # 路由总和
 │   │
 │   ├── db/                     # 数据库相关
 │   │   ├── init.js            # 数据库初始化

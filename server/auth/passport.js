@@ -1,4 +1,4 @@
-// File: server/config/passport.js
+// File: server/auth/passport.js
 
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -27,8 +27,8 @@ passport.use(new LocalStrategy(
         return done(null, false, { message: '用户名或密码错误' });
       }
 
-      // 更新最后登录时间
-      db.prepare('UPDATE users SET lastLoginAt = datetime("now") WHERE id = ?').run(user.id);
+      // 更新最后登录时间 - 修复：使用单引号
+      db.prepare("UPDATE users SET lastLoginAt = datetime('now') WHERE id = ?").run(user.id);
 
       // 返回用户信息（不包括密码）
       const { password: _, ...userWithoutPassword } = user;

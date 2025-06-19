@@ -154,7 +154,7 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    '/src/assets/images/38flooded-room.png', 
    21.0),
   -- 39
-  ('flight-turbulence', 。qi
+  ('flight-turbulence',
    '/src/assets/images/39flight-turbulence.png', 
    32.5),
   -- 40

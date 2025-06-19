@@ -163,14 +163,15 @@ router.post('/change-password', async (req, res) => {
     }
     
     // 获取用户当前密码
-    const user = db.prepare('SELECT password FROM users WHERE id = ?').get(req.user.id);
-    
-    // 验证当前密码
-    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: '当前密码错误' });
-    }
-    
+   const user = db.prepare(`
+  SELECT * FROM users 
+  WHERE id = ?
+`).get(req.user.id);
+
+const isValidPassword = await bcrypt.compare(password, user.password);
+if (!isValidPassword) {
+  return res.status(401).json({ message: 'Invalid password' });
+}
     // 哈希新密码
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
     

@@ -46,17 +46,17 @@ if (firstRun) {
     );
 
     CREATE TABLE IF NOT EXISTS rounds (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      gameId INTEGER NOT NULL,
-      cardId INTEGER NOT NULL,
-      orderNo INTEGER NOT NULL, -- -1 表示初始手牌，0+ 表示游戏轮次
-      guessedCorrect INTEGER NOT NULL CHECK (guessedCorrect IN (0, 1)),
-      guessedAt TEXT NOT NULL DEFAULT (datetime('now')),
-      position INTEGER, -- 玩家猜测的位置，-1表示超时
-      FOREIGN KEY(gameId) REFERENCES games(id) ON DELETE CASCADE,
-      FOREIGN KEY(cardId) REFERENCES cards(id),
-      UNIQUE(gameId, cardId) -- 确保同一游戏中卡片不重复
-    );
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  gameId INTEGER NOT NULL,
+  cardId INTEGER NOT NULL,
+  orderNo INTEGER NOT NULL, -- -1 表示初始手牌，0+ 表示游戏轮次
+  guessedCorrect INTEGER NOT NULL CHECK (guessedCorrect IN (0, 1)),
+  guessedAt TEXT NOT NULL DEFAULT (datetime('now')),
+  position INTEGER, -- 玩家猜测的位置，-1表示超时
+  FOREIGN KEY(gameId) REFERENCES games(id) ON DELETE CASCADE,
+  FOREIGN KEY(cardId) REFERENCES cards(id),
+  UNIQUE(gameId, cardId) -- 确保同一游戏中卡片不重复
+);
 
     -- 创建索引提高查询性能
     CREATE INDEX IF NOT EXISTS idx_games_user_id ON games(userId);
