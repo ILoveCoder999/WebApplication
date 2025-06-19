@@ -58,25 +58,31 @@ router.get('/games', requireAuth, (req, res) => {
       LIMIT 50
     `).all(req.user.id);
     
-    // 为每个游戏获取详细的卡牌信息
+    // 为每个游戏获取详细的卡牌信息，确保包含 imgUrl 字段
     const gamesWithDetails = games.map(game => {
-      // 获取初始卡牌（orderNo = -1）
+      // 获取初始卡牌（orderNo = -1）- 包含 imgUrl
       const initialCards = db.prepare(`
-        SELECT c.id, c.title, c.badLuckIdx, r.orderNo, r.guessedCorrect
+        SELECT c.id, c.title, c.badLuckIdx, c.imgUrl, r.orderNo, r.guessedCorrect
         FROM rounds r
         JOIN cards c ON r.cardId = c.id
         WHERE r.gameId = ? AND r.orderNo = -1
         ORDER BY c.badLuckIdx
       `).all(game.id);
 
-      // 获取游戏过程中的卡牌（orderNo >= 0）
+      // 获取游戏过程中的卡牌（orderNo >= 0）- 包含 imgUrl
       const gameCards = db.prepare(`
-        SELECT c.id, c.title, c.badLuckIdx, r.orderNo, r.guessedCorrect, r.position
+        SELECT c.id, c.title, c.badLuckIdx, c.imgUrl, r.orderNo, r.guessedCorrect, r.position
         FROM rounds r
         JOIN cards c ON r.cardId = c.id
         WHERE r.gameId = ? AND r.orderNo >= 0
         ORDER BY r.orderNo
       `).all(game.id);
+
+      // 为游戏轮次卡牌添加轮次编号
+      const gameCardsWithRoundNumber = gameCards.map(card => ({
+        ...card,
+        roundNumber: card.orderNo + 1 // 轮次编号从1开始
+      }));
 
       // 统计信息
       const totalCards = initialCards.length + gameCards.filter(c => c.guessedCorrect === 1).length;
@@ -86,7 +92,7 @@ router.get('/games', requireAuth, (req, res) => {
       return {
         ...game,
         initialCards,
-        gameCards,
+        gameCards: gameCardsWithRoundNumber,
         stats: {
           totalCards,
           totalRounds,
@@ -95,6 +101,12 @@ router.get('/games', requireAuth, (req, res) => {
         }
       };
     });
+    
+    // 调试输出
+    console.log(`📊 User API: Fetched ${gamesWithDetails.length} games for user ${req.user.id}`);
+    if (gamesWithDetails.length > 0 && gamesWithDetails[0].initialCards.length > 0) {
+      console.log('🔍 User API - Sample initial card:', gamesWithDetails[0].initialCards[0]);
+    }
     
     res.json(gamesWithDetails);
   } catch (error) {
@@ -254,4 +266,5 @@ router.get('/achievements', requireAuth, (req, res) => {
   }
 });
 
+// 重要：确保正确导出 router
 export default router;

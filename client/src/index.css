@@ -20,6 +20,27 @@ html, body {
   min-height: 100vh;
 }
 
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 主要内容区域 - 为头部导航留出空间 */
+.app > *:not(header) {
+  flex: 1;
+}
+
+/* 未登录页面的全屏背景 */
+.app:not(:has(header)) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 登录后的页面背景调整 */
+.app:has(header) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
 /* 通用按钮样式 */
 button {
   font-family: inherit;
@@ -28,12 +49,17 @@ button {
   transition: all 0.3s ease;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   transform: translateY(-2px);
 }
 
 button:active {
   transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* 链接样式 */
@@ -165,3 +191,40 @@ input:focus {
 .text-warning { color: #ff9800; }
 .text-danger { color: #f44336; }
 .text-muted { color: #757575; }
+
+/* 页面内容区域的调整 */
+.play-page,
+.profile-page,
+.demo-page {
+  padding-top: 2rem; /* 为有头部的页面增加顶部间距 */
+}
+
+/* 登录、注册等全屏页面保持原有样式 */
+.login-page,
+.register-page {
+  padding-top: 0;
+}
+
+/* 确保游戏规则页面的背景 */
+.rules-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
