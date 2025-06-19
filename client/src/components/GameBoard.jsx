@@ -130,11 +130,13 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
       return (
         <div className="card-item card-placeholder">
           <div className="card-image card-placeholder-image" />
-          <div className="card-title card-placeholder-title">
-            {cardData.title}
-          </div>
-          <div className="card-index">
-            Bad Luck: {cardData.badLuckIdx.toFixed(1)}
+          <div className="card-info">
+            <div className="card-title card-placeholder-title">
+              {cardData.title}
+            </div>
+            <div className="card-index">
+              Bad Luck: {cardData.badLuckIdx.toFixed(1)}
+            </div>
           </div>
         </div>
       );
@@ -151,16 +153,21 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
           onError={(e) => {
             // 图片加载失败时显示占位符
             e.target.style.display = 'none';
-            e.target.nextSibling.style.display = 'flex';
+            const placeholder = e.target.parentNode.querySelector('.card-placeholder-image');
+            if (placeholder) {
+              placeholder.style.display = 'block';
+            }
           }}
         />
         <div 
           className="card-image card-placeholder-image" 
           style={{ display: 'none' }}
         />
-        <div className="card-title">{cardData.title}</div>
-        <div className="card-index">
-          Bad Luck: {cardData.badLuckIdx.toFixed(1)}
+        <div className="card-info">
+          <div className="card-title">{cardData.title}</div>
+          <div className="card-index">
+            Bad Luck: {cardData.badLuckIdx.toFixed(1)}
+          </div>
         </div>
       </div>
     );
@@ -215,18 +222,23 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
                 draggable={false}
                 onError={(e) => {
                   e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
+                  const placeholder = e.target.parentNode.querySelector('.card-placeholder-image');
+                  if (placeholder) {
+                    placeholder.style.display = 'block';
+                  }
                 }}
               />
               <div 
                 className="card-image card-placeholder-image" 
                 style={{ display: 'none' }}
               />
-              <div className="card-title card-title-hidden">
-                {hiddenCard.title}
-              </div>
-              <div className="card-index">
-                Bad Luck: ???
+              <div className="card-info">
+                <div className="card-title card-title-hidden">
+                  {hiddenCard.title}
+                </div>
+                <div className="card-index">
+                  Bad Luck: ???
+                </div>
               </div>
             </div>
             
@@ -249,7 +261,10 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
                 className="card-image"
                 draggable={false}
               />
-              <div className="card-title">{hiddenCard.title}</div>
+              <div className="card-info">
+                <div className="card-title">{hiddenCard.title}</div>
+                <div className="card-index">Bad Luck: ???</div>
+              </div>
             </div>
           </>
         ) : (

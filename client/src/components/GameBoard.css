@@ -13,6 +13,10 @@
   align-items: center;
   margin-top: 2rem;
   position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* 手牌容器 */
@@ -22,19 +26,22 @@
   margin-bottom: 3rem;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+  padding: 0 1rem;
 }
 
-/* 手牌槽位 */
+/* 手牌槽位 - 统一较大尺寸 */
 .hand-slot {
-  width: 120px;
-  height: 200px;
+  width: 140px; /* 增加宽度 */
+  min-height: 260px; /* 增加高度 */
+  height: auto; /* 允许高度自适应 */
   border: 2px dashed #ccc;
   border-radius: 8px;
   background-color: #fafafa;
   transition: all 0.3s ease;
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch; /* 改为stretch确保内容填满 */
   justify-content: center;
 }
 
@@ -47,10 +54,11 @@
   transform: scale(1.02);
 }
 
-/* 卡片项目基础样式 */
+/* 卡片项目基础样式 - 统一较大尺寸 */
 .card-item {
   width: 100%;
   height: 100%;
+  min-height: 240px; /* 增加最小高度 */
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -78,18 +86,21 @@
   50% { opacity: 1; }
 }
 
-/* 卡片图片 */
+/* 卡片图片 - 统一较大尺寸 */
 .card-image {
   width: 100%;
-  height: 70%;
+  height: 65%; /* 增加图片高度比例 */
+  min-height: 150px; /* 增加最小高度 */
   object-fit: cover;
   transition: transform 0.2s ease;
+  flex-shrink: 0; /* 防止压缩 */
 }
 
 /* 占位符图片 */
 .card-placeholder-image {
   width: 100%;
-  height: 70%;
+  height: 65%; /* 与普通图片保持一致 */
+  min-height: 150px; /* 增加最小高度 */
   background: linear-gradient(45deg, #bbdefb 25%, transparent 25%),
               linear-gradient(-45deg, #bbdefb 25%, transparent 25%),
               linear-gradient(45deg, transparent 75%, #bbdefb 75%),
@@ -97,6 +108,7 @@
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   animation: move-bg 2s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes move-bg {
@@ -104,14 +116,27 @@
   100% { background-position: 20px 20px, 20px 30px, 30px 10px, 10px 20px; }
 }
 
+/* 卡片信息区域 - 适应更大尺寸 */
+.card-info {
+  flex: 1; /* 占用剩余空间 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.6rem; /* 增加内边距 */
+  min-height: 90px; /* 增加最小高度 */
+}
+
 /* 卡片标题 */
 .card-title {
-  padding: 0.5rem;
+  padding: 0.6rem; /* 增加内边距 */
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.9rem; /* 恢复稍大的字体 */
   background-color: #f5f5f5;
   font-weight: 600;
   color: #333;
+  line-height: 1.3; /* 增加行高 */
+  word-wrap: break-word;
+  flex-shrink: 0;
 }
 
 .card-placeholder-title {
@@ -121,25 +146,31 @@
   font-weight: bold;
 }
 
-/* 卡片索引 */
+/* 卡片索引 - 适应更大尺寸 */
 .card-index {
-  font-size: 0.8rem;
+  font-size: 0.8rem; /* 恢复稍大的字体 */
   color: #666;
   text-align: center;
-  margin-top: 0.25rem;
+  margin-top: 0.3rem; /* 增加间距 */
   font-weight: 500;
+  padding: 0.3rem; /* 增加内边距 */
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  white-space: nowrap; /* 防止换行 */
+  flex-shrink: 0;
 }
 
 /* 隐藏卡部分 */
 .hidden-card-container {
   position: relative;
-  width: 120px;
-  height: 200px;
+  width: 140px; /* 与手牌槽位保持一致 */
+  min-height: 260px; /* 与手牌槽位保持一致 */
 }
 
 .hidden-card {
   width: 100%;
   height: 100%;
+  min-height: 240px; /* 与卡片项目保持一致 */
   background: linear-gradient(135deg, #fff3e0, #ffe0b2);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -147,7 +178,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* 改为从顶部开始 */
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -187,10 +218,11 @@
   align-items: center;
   justify-content: center;
   color: #999;
-  font-size: 0.9rem;
+  font-size: 1rem; /* 增加字体大小 */
   font-style: italic;
   background: linear-gradient(45deg, transparent 49%, #f0f0f0 49%, #f0f0f0 51%, transparent 51%);
   background-size: 10px 10px;
+  min-height: 240px; /* 与卡片项目保持一致 */
 }
 
 /* 拖拽预览元素 */
@@ -257,16 +289,52 @@
   .hand-container {
     gap: 0.5rem;
     margin-bottom: 2rem;
+    padding: 0 0.5rem;
   }
   
   .hand-slot {
-    width: 100px;
-    height: 160px;
+    width: 130px; /* 中等屏幕仍保持较大尺寸 */
+    min-height: 240px;
   }
   
   .hidden-card-container {
-    width: 100px;
-    height: 160px;
+    width: 130px;
+    min-height: 240px;
+  }
+  
+  .card-title {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+  
+  .card-index {
+    font-size: 0.75rem;
+  }
+  
+  .drag-hint {
+    font-size: 0.9rem;
+    padding: 0.8rem 1.5rem;
+  }
+  
+  .card-image, .card-placeholder-image {
+    min-height: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hand-container {
+    flex-direction: row; /* 保持横向排列 */
+    align-items: center;
+    gap: 0.5rem; /* 增加间距 */
+    overflow-x: auto; /* 允许横向滚动 */
+    padding: 0 0.5rem;
+  }
+  
+  .hand-slot,
+  .hidden-card-container {
+    width: 120px; /* 小屏幕也保持相对较大的尺寸 */
+    min-height: 220px;
+    flex-shrink: 0; /* 防止压缩 */
   }
   
   .card-title {
@@ -276,24 +344,32 @@
   
   .card-index {
     font-size: 0.7rem;
+    padding: 0.25rem;
   }
   
-  .drag-hint {
-    font-size: 0.9rem;
-    padding: 0.8rem 1.5rem;
+  .card-image, .card-placeholder-image {
+    min-height: 130px;
   }
 }
 
-@media (max-width: 480px) {
-  .hand-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-  
+/* 超小屏幕优化 */
+@media (max-width: 320px) {
   .hand-slot,
   .hidden-card-container {
-    width: 120px;
-    height: 180px;
+    width: 110px; /* 超小屏幕适当缩小但仍保持合理大小 */
+    min-height: 200px;
+  }
+  
+  .card-title {
+    font-size: 0.75rem;
+    padding: 0.35rem;
+  }
+  
+  .card-index {
+    font-size: 0.65rem;
+  }
+  
+  .card-image, .card-placeholder-image {
+    min-height: 120px;
   }
 }
