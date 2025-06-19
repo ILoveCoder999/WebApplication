@@ -3,7 +3,7 @@ BEGIN TRANSACTION;
 INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
   -- 1
   ('Missed boarding announcement at the airport, plane has already departed', 
-   '/src/assets/images/1missed-fight.png', 
+   '/src/assets/images/1missed-flight.png', 
    10.0),
   -- 2
   ('Luggage lost at the airport, containing all your change of clothes', 
@@ -55,7 +55,7 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    16.0),
   -- 14
   ('Severe sunburn on the beach, skin peeling for a week', 
-   '/src/assets/images/14sunburn.png', 
+   '/src/assets/images/14severe-sunburn.png', 
    14.0),
   -- 15
   ('Scuba gear malfunction while diving, nearly drowned', 
@@ -67,19 +67,19 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    33.5),
   -- 17
   ('Contagious gastroenteritis outbreak on the ship, all passengers quarantined', 
-   '/src/assets/images/17ship-illness.png', 
+   '/src/assets/images/17ship-quarantine.png', 
    45.0),
   -- 18
   ('Rope snapped during rock climbing, fell from halfway up the mountain', 
-   '/src/assets/images/18rock-climbing-fall.png', 
+   '/src/assets/images/18climbing-rope-break.png', 
    50.0),
   -- 19
   ('Lost direction while self-driving in the desert, ran out of water and fuel', 
-   '/src/assets/images/19desert-stranded.png', 
+   '/src/assets/images/19lost-in-desert.png', 
    60.0),
   -- 20
   ('Caught in a blizzard at the summit, trapped on a 5000m peak', 
-   '/src/assets/images/20snowstorm.png', 
+   '/src/assets/images/20blizzard-trapped.png', 
    75.0),
   -- 21
   ('Hot air balloon loses control, lands in a dangerous canyon', 
@@ -99,23 +99,23 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    80.0),
   -- 25
   ('Trapped in an elevator for hours during a power outage, phone also dead', 
-   '/src/assets/images/25stuck-elevator.png', 
+   '/src/assets/images/25stuckin-elevator.png', 
    23.0),
   -- 26
   ('Visa on arrival policy suddenly changed, detained for three days', 
-   '/src/assets/images/26visa-change.png', 
+   '/src/assets/images/26visa-detained.png', 
    55.0),
   -- 27
   ('Frostbite on the soles during a glacier trek, required toe amputation surgery', 
-   '/src/assets/images/27frostbite.png', 
+   '/src/assets/images/27frostbite-glacier.png', 
    65.0),
   -- 28
   ('Lost while mountain climbing, no phone navigation signal', 
-   '/src/assets/images/28lost-hiker.png', 
+   '/src/assets/images/28lost-mountain.png', 
    35.5),
   -- 29
   ('Bitten by insects in the rainforest, contracted malaria', 
-   '/src/assets/images/29malaria.png', 
+   '/src/assets/images/29malaria-bite.png', 
    58.0),
   -- 30
   ('Yacht engine failure on a night voyage, drifted into open sea', 
@@ -123,15 +123,15 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    42.5),
   -- 31
   ('Snow blindness during a polar expedition, blind for two hours', 
-   '/src/assets/images/31snow-blind.png', 
+   '/src/assets/images/31snow-blindness.png', 
    48.0),
   -- 32
   ('Missed the last train, forced to spend the night at the station', 
-   '/src/assets/images/32missed-train.png', 
+   '/src/assets/images/32missed-lasttrain.png', 
    13.5),
   -- 33
   ('Food poisoning from a roadside restaurant, hospitalized for three days', 
-   '/src/assets/images/33restaurant-food-poison.png', 
+   '/src/assets/images/33restaurant-foodpoison.png', 
    31.0),
   -- 34
   ('Stung by jellyfish while swimming at the beach, severe allergic reaction', 
@@ -147,7 +147,7 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    17.0),
   -- 37
   ('Hotel reception in a mountain area overcharged double the room rate by mistake', 
-   '/src/assets/images/37overcharged.png', 
+   '/src/assets/images/37hotel-overcharged.png', 
    11.5),
   -- 38
   ('Hotel room flooded by a burst pipe, belongings soaked', 
@@ -155,15 +155,15 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    21.0),
   -- 39
   ('Encountered severe turbulence on flight, all passengers vomited', 
-   '/src/assets/images/39turbulence.png', 
+   '/src/assets/images/39flight-turbulence.png', 
    32.5),
   -- 40
   ('Mistaken for a terrorist while queuing at the airport, subjected to prolonged security interrogation', 
-   '/src/assets/images/40airport-misunderstand.png', 
+   '/src/assets/images/40airport-security-misunderstand.png', 
    36.0),
   -- 41
   ('Caught in an avalanche while skiing, rescue in valley extremely costly', 
-   '/src/assets/images/41avalanche.png', 
+   '/src/assets/images/41sking-avalanche.png', 
    68.0),
   -- 42
   ('Hit by lightning while riding a hot air balloon, nearly killed', 
@@ -183,15 +183,15 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    88.0),
   -- 46
   ('Oxygen tank leaked during deep-sea diving, nearly suffocated', 
-   '/src/assets/images/46deep-dive-leak.png', 
+   '/src/assets/images/46oxygen-leak.png', 
    90.0),
   -- 47
   ('Private plane crash, miraculously survived', 
-   '/src/assets/images/47plane-crash-survive.png', 
+   '/src/assets/images/47plane-crash.png', 
    95.0),
   -- 48
   ('Lost in snowy mountain skiing for days, nearly froze to death', 
-   '/src/assets/images/48snowstorm-lost.png', 
+   '/src/assets/images/48lost-snowstorm.png', 
    92.5),
   -- 49
   ('Attacked by a shark at sea, right arm bitten off', 
@@ -199,7 +199,7 @@ INSERT INTO cards (title, imgUrl, badLuckIdx) VALUES
    100.0),
   -- 50
   ('Buried under collapsed ruins during exploration for 24 hours', 
-   '/src/assets/images/50ruins-collapse.png', 
+   '/src/assets/images/50buried-ruins.png', 
    98.0);
 
 COMMIT;
