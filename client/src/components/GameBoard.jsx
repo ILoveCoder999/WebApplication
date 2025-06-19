@@ -122,6 +122,17 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
     }
   };
 
+  // 根据文本长度确定CSS类名
+  const getTitleClassName = (title) => {
+    const baseClass = 'card-title';
+    if (title.length > 15) {
+      return `${baseClass} very-long-text`;
+    } else if (title.length > 10) {
+      return `${baseClass} long-text`;
+    }
+    return baseClass;
+  };
+
   // 渲染单张卡片组件
   const renderCard = (cardData, type = 'normal') => {
     if (!cardData) return null;
@@ -131,7 +142,7 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
         <div className="card-item card-placeholder">
           <div className="card-image card-placeholder-image" />
           <div className="card-info">
-            <div className="card-title card-placeholder-title">
+            <div className={`${getTitleClassName(cardData.title)} card-placeholder-title`}>
               {cardData.title}
             </div>
             <div className="card-index">
@@ -164,7 +175,7 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
           style={{ display: 'none' }}
         />
         <div className="card-info">
-          <div className="card-title">{cardData.title}</div>
+          <div className={getTitleClassName(cardData.title)}>{cardData.title}</div>
           <div className="card-index">
             Bad Luck: {cardData.badLuckIdx.toFixed(1)}
           </div>
@@ -233,7 +244,7 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
                 style={{ display: 'none' }}
               />
               <div className="card-info">
-                <div className="card-title card-title-hidden">
+                <div className={`${getTitleClassName(hiddenCard.title)} card-title-hidden`}>
                   {hiddenCard.title}
                 </div>
                 <div className="card-index">
@@ -262,7 +273,7 @@ export default function GameBoard({ hand, hiddenCard, wrongGuess, onDrop }) {
                 draggable={false}
               />
               <div className="card-info">
-                <div className="card-title">{hiddenCard.title}</div>
+                <div className={getTitleClassName(hiddenCard.title)}>{hiddenCard.title}</div>
                 <div className="card-index">Bad Luck: ???</div>
               </div>
             </div>
