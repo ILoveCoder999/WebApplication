@@ -4,22 +4,22 @@ import GameBoard from '../components/GameBoard.jsx';
 import TimerBar from '../components/TimerBar.jsx';
 import './DemoPage.css';
 
-// 导入图片资源
+// Import image assets
 import missedFlightImg from '../assets/images/1missed-flight.png';
 import lostLuggageImg from '../assets/images/2lost-luggage.png';  
 import passportIssueImg from '../assets/images/3passport-issue.png';
 import hotelFullImg from '../assets/images/4hotel-full.png';
 
-// 演示用的模拟数据 - 使用旅行相关的倒霉事件
+// Simulated demo data - travel-related unfortunate events
 const DEMO_INITIAL_HAND = [
-  { id: 'demo1', title: '错过航班', imgUrl: missedFlightImg, badLuckIdx: 15.2 },
-  { id: 'demo2', title: '行李丢失', imgUrl: lostLuggageImg, badLuckIdx: 25.8 },
-  { id: 'demo3', title: '护照问题', imgUrl: passportIssueImg, badLuckIdx: 45.6 }
+  { id: 'demo1', title: 'Missed Flight', imgUrl: missedFlightImg, badLuckIdx: 15.2 },
+  { id: 'demo2', title: 'Lost Luggage', imgUrl: lostLuggageImg, badLuckIdx: 25.8 },
+  { id: 'demo3', title: 'Passport Issue', imgUrl: passportIssueImg, badLuckIdx: 45.6 }
 ];
 
 const DEMO_HIDDEN_CARD = {
   id: 'demo4', 
-  title: '酒店客满', 
+  title: 'Hotel Fully Booked', 
   imgUrl: hotelFullImg, 
   badLuckIdx: 32.4
 };
@@ -31,55 +31,46 @@ export default function DemoPage() {
   const [wrongGuess, setWrongGuess] = useState(false);
   const [userGuess, setUserGuess] = useState(null);
   const [timerKey, setTimerKey] = useState(0);
-  const [finalHand, setFinalHand] = useState([]); // 新增：保存最终手牌
+  const [finalHand, setFinalHand] = useState([]); // Store final hand
 
   const handleStartGame = () => {
     setGameState('playing');
-    setTimerKey(prev => prev + 1); // 重置计时器
+    setTimerKey(prev => prev + 1); // Reset timer
   };
 
   const handleGuess = (position) => {
     if (gameState !== 'playing') return;
 
     setUserGuess(position);
-    
-    // 检查答案：正确答案应该是位置2（在25.8和45.6之间）
     const correctPosition = 2;
-    
+
     if (position === correctPosition) {
-      // 答对了 - 获得卡牌并加入手牌
       setGameState('correct');
       setWrongGuess(false);
-      
-      // 更新手牌显示
+
       const newHand = [...hand];
       newHand.splice(position, 0, hiddenCard);
       setHand(newHand);
-      setFinalHand(newHand); // 保存最终手牌
+      setFinalHand(newHand);
       setHiddenCard(null);
     } else {
-      // 答错了 - 卡牌被丢弃，不加入手牌
       setGameState('wrong');
       setWrongGuess(true);
       setTimeout(() => setWrongGuess(false), 500);
-      setFinalHand([...hand]); // 保存失败时的手牌（没有新卡）
-      // 注意：手牌不更新，卡牌被丢弃
+      setFinalHand([...hand]);
     }
   };
 
   const handleTimeUp = () => {
     if (gameState === 'playing') {
-      // 超时 - 卡牌被丢弃，不加入手牌
       setGameState('timeout');
       setWrongGuess(true);
       setTimeout(() => setWrongGuess(false), 500);
-      setFinalHand([...hand]); // 保存超时时的手牌（没有新卡）
-      // 注意：手牌不更新，卡牌被永久丢弃
+      setFinalHand([...hand]);
     }
   };
 
   const resetDemo = () => {
-    // 重置到游戏开始前的状态，让玩家确认是否要重新开始
     setGameState('intro');
     setHand(DEMO_INITIAL_HAND);
     setHiddenCard(DEMO_HIDDEN_CARD);
@@ -89,17 +80,15 @@ export default function DemoPage() {
   };
 
   const handlePlayAgain = () => {
-    // 直接开始新游戏，不回到介绍页面
     setGameState('playing');
     setHand(DEMO_INITIAL_HAND);
     setHiddenCard(DEMO_HIDDEN_CARD);
     setWrongGuess(false);
     setUserGuess(null);
     setFinalHand([]);
-    setTimerKey(prev => prev + 1); // 重置计时器
+    setTimerKey(prev => prev + 1);
   };
 
-  // 渲染卡牌展示组件
   const renderCardDisplay = (card, index) => (
     <div key={`${card.id}-${index}`} className="demo-final-card-item">
       <div className="demo-final-card-position">{index + 1}</div>
@@ -116,7 +105,7 @@ export default function DemoPage() {
               parent.style.display = 'flex';
               parent.style.alignItems = 'center';
               parent.style.justifyContent = 'center';
-              parent.innerHTML = '<span style="color: #1976d2; font-weight: bold;">图片加载失败</span>';
+              parent.innerHTML = '<span style="color: #1976d2; font-weight: bold;">Image Load Failed</span>';
             }
           }}
         />
@@ -132,20 +121,19 @@ export default function DemoPage() {
     return (
       <div className="demo-page">
         <div className="demo-intro">
-          <h1 className="demo-title">🎮 Stuff Happens - 演示版</h1>
+          <h1 className="demo-title">🎮 Stuff Happens - Demo Version</h1>
           <div className="demo-explanation">
-            <h2>演示说明</h2>
-            <p>这是一个单轮演示，帮助您了解游戏玩法：</p>
+            <h2>How It Works</h2>
+            <p>This is a single-round demo to help you understand the gameplay:</p>
             <ul className="demo-rules">
-              <li>您将看到3张已排序的卡片，显示它们的坏运指数</li>
-              <li>需要将新出现的卡片拖拽到正确位置</li>
-              <li>记住：坏运指数越低 = 越不倒霉 = 越靠前</li>
-              <li>您有30秒时间做决定</li>
-              <li><strong>重要：</strong>如果答错或超时，卡牌将被永久丢弃</li>
+              <li>You will see 3 sorted cards showing their bad luck index</li>
+              <li>You must drag the new card into the correct position</li>
+              <li>Remember: lower index = less unlucky = closer to front</li>
+              <li>You have 30 seconds to decide</li>
+              <li><strong>Important:</strong> Incorrect or late decisions will discard the card permanently</li>
             </ul>
-            
             <div className="current-hand-preview">
-              <h3>当前手牌预览：</h3>
+              <h3>Your Current Cards:</h3>
               <div className="hand-preview">
                 {DEMO_INITIAL_HAND.map((card, idx) => (
                   <div key={card.id} className="preview-card">
@@ -156,29 +144,26 @@ export default function DemoPage() {
                 ))}
               </div>
             </div>
-
             <div className="challenge-card">
-              <h3>挑战卡片：</h3>
+              <h3>Challenge Card:</h3>
               <div className="preview-card challenge">
                 <span className="preview-title">{DEMO_HIDDEN_CARD.title}</span>
-                <span className="preview-question">坏运指数：???</span>
+                <span className="preview-question">Bad Luck Index: ???</span>
               </div>
               <p className="challenge-hint">
-                想想看，"{DEMO_HIDDEN_CARD.title}"应该插入到哪个位置？
+                Where should "{DEMO_HIDDEN_CARD.title}" be inserted?
               </p>
               <p style={{ color: '#ffeb3b', fontWeight: 'bold', marginTop: '1rem' }}>
-                ⚠️ 注意：答错或超时将失去这张卡片！
+                ⚠️ WARNING: Wrong guess or timeout will discard this card forever!
               </p>
             </div>
           </div>
-
           <button onClick={handleStartGame} className="btn-start-demo">
-            开始演示游戏 🚀
+            Start Demo Game 🚀
           </button>
-          
           <div className="demo-footer">
-            <Link to="/rules" className="link-rules">📖 查看完整规则</Link>
-            <Link to="/" className="link-login">🔑 登录玩完整版</Link>
+            <Link to="/rules" className="link-rules">📖 View Full Rules</Link>
+            <Link to="/" className="link-login">🔑 Log in to Play Full Version</Link>
           </div>
         </div>
       </div>
@@ -189,57 +174,32 @@ export default function DemoPage() {
     return (
       <div className="demo-page">
         <div className="demo-result success">
-          <h2>🎉 恭喜答对了！</h2>
-          <p>"{DEMO_HIDDEN_CARD.title}"的坏运指数是 <strong>{DEMO_HIDDEN_CARD.badLuckIdx}</strong></p>
-          <p>您正确地将它放在了第 {userGuess + 1} 个位置！</p>
-          <p style={{ color: '#e8f5e8', fontWeight: 'bold' }}>✅ 卡片已加入您的手牌</p>
-          
-          {/* 显示获得的所有卡牌 */}
+          <h2>🎉 Well Done!</h2>
+          <p>The bad luck index of "{DEMO_HIDDEN_CARD.title}" is <strong>{DEMO_HIDDEN_CARD.badLuckIdx}</strong></p>
+          <p>You correctly placed it at position {userGuess + 1}!</p>
+          <p style={{ color: '#e8f5e8', fontWeight: 'bold' }}>✅ The card has been added to your hand</p>
           {finalHand.length > 0 && (
-            <div style={{
-              background: 'rgba(255,255,255,0.1)',
-              padding: '1.5rem',
-              borderRadius: '10px',
-              margin: '2rem 0',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <h3 style={{ marginBottom: '1rem' }}>🎴 您获得的所有卡牌：</h3>
+            <div className="demo-final-cards-grid-container">
+              <h3>🎴 Your Final Cards:</h3>
               <div className="demo-final-cards-grid">
                 {finalHand.map((card, index) => renderCardDisplay(card, index))}
               </div>
-              <p style={{ 
-                marginTop: '1rem', 
-                fontSize: '0.9rem', 
-                opacity: 0.9,
-                fontStyle: 'italic' 
-              }}>
-                卡牌已按 Bad Luck 指数从低到高排序
-              </p>
+              <p className="demo-note">Cards are sorted by Bad Luck index</p>
             </div>
           )}
-
-          <div style={{
-            background: 'rgba(255,255,255,0.1)',
-            padding: '1.5rem',
-            borderRadius: '10px',
-            margin: '2rem 0',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <h3>🎮 演示完成！</h3>
-            <p style={{ marginBottom: '1rem' }}>
-              您已经体验了基本的游戏玩法，并成功收集了 {finalHand.length} 张卡牌。准备尝试完整版游戏了吗？
-            </p>
+          <div className="demo-summary">
+            <h3>🎮 Demo Complete!</h3>
+            <p>You collected {finalHand.length} cards. Ready to try the full game?</p>
           </div>
-
           <div className="demo-complete-actions">
             <button onClick={handlePlayAgain} className="btn-retry">
-              🔄 再试一次演示
+              🔄 Try the Demo Again
             </button>
             <Link to="/rules" className="btn-rules">
-              📖 查看完整规则
+              📖 View Full Rules
             </Link>
             <Link to="/" className="btn-register">
-              🎮 开始完整游戏
+              🎮 Play Full Game
             </Link>
           </div>
         </div>
@@ -251,75 +211,49 @@ export default function DemoPage() {
     return (
       <div className="demo-page">
         <div className="demo-result failure">
-          <h2>😅 {gameState === 'timeout' ? '时间到了！' : '答错了！'}</h2>
-          <p>"{DEMO_HIDDEN_CARD.title}"的坏运指数是 <strong>{DEMO_HIDDEN_CARD.badLuckIdx}</strong></p>
+          <h2>😅 {gameState === 'timeout' ? 'Time’s Up!' : 'Incorrect Guess!'}</h2>
+          <p>The correct bad luck index of "{DEMO_HIDDEN_CARD.title}" is <strong>{DEMO_HIDDEN_CARD.badLuckIdx}</strong></p>
           <p style={{ color: '#ffcdd2', fontWeight: 'bold' }}>
-            ❌ 卡片已被永久丢弃，无法获得
+            ❌ The card has been permanently discarded
           </p>
-          <p>正确答案：应该放在第 3 个位置（在 25.8 和 45.6 之间）</p>
-          
-          {/* 显示最终获得的卡牌（只有初始手牌） */}
+          <p>Correct position: slot 3 (between 25.8 and 45.6)</p>
           {finalHand.length > 0 && (
-            <div style={{
-              background: 'rgba(255,255,255,0.1)',
-              padding: '1.5rem',
-              borderRadius: '10px',
-              margin: '2rem 0',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <h3 style={{ marginBottom: '1rem' }}>🎴 您保留的卡牌：</h3>
+            <div className="demo-final-cards-grid-container">
+              <h3>🎴 Cards You Still Have:</h3>
               <div className="demo-final-cards-grid">
                 {finalHand.map((card, index) => renderCardDisplay(card, index))}
               </div>
-              <p style={{ 
-                marginTop: '1rem', 
-                fontSize: '0.9rem', 
-                opacity: 0.9,
-                fontStyle: 'italic' 
-              }}>
-                只保留了初始的 {finalHand.length} 张卡牌，新卡片已丢失
+              <p className="demo-note">
+                Only the initial {finalHand.length} cards are retained. New card was discarded.
               </p>
             </div>
           )}
-          
           <div className="explanation">
-            <h3>解释：</h3>
-            <p>卡片应该按坏运指数从低到高排列：</p>
+            <h3>Explanation:</h3>
+            <p>Cards should be sorted in ascending order of bad luck index:</p>
             <div className="correct-order">
-              <div className="order-item">错过航班 (15.2)</div>
-              <div className="order-item">行李丢失 (25.8)</div>
-              <div className="order-item highlight">→ 酒店客满 (32.4) ← 应在此位置</div>
-              <div className="order-item">护照问题 (45.6)</div>
+              <div className="order-item">Missed Flight (15.2)</div>
+              <div className="order-item">Lost Luggage (25.8)</div>
+              <div className="order-item highlight">→ Hotel Fully Booked (32.4) ←</div>
+              <div className="order-item">Passport Issue (45.6)</div>
             </div>
-            <p style={{ marginTop: '1rem', fontStyle: 'italic' }}>
-              💡 在真实游戏中，{gameState === 'timeout' ? '超时' : '猜错'}会使卡片永久消失，
-              您将无法再次见到它，这会影响最终的手牌完整度。
+            <p className="demo-note">
+              💡 In the full game, a wrong guess or timeout means you lose the card permanently.
             </p>
           </div>
-
-          <div style={{
-            background: 'rgba(255,255,255,0.1)',
-            padding: '1.5rem',
-            borderRadius: '10px',
-            margin: '2rem 0',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <h3>🎮 演示完成！</h3>
-            <p style={{ marginBottom: '1rem' }}>
-              虽然这次没有成功获得新卡片，但您已经了解了游戏的基本玩法和后果。
-              准备挑战完整版游戏了吗？
-            </p>
+          <div className="demo-summary">
+            <h3>🎮 Demo Complete!</h3>
+            <p>Even though you didn’t get the new card, you’ve learned the basics. Ready for the full game?</p>
           </div>
-
           <div className="demo-complete-actions">
             <button onClick={handlePlayAgain} className="btn-retry">
-              🔄 再试一次演示
+              🔄 Try the Demo Again
             </button>
             <Link to="/rules" className="btn-rules">
-              📖 学习完整规则
+              📖 Learn the Full Rules
             </Link>
             <Link to="/" className="btn-register">
-              🎮 开始完整游戏
+              🎮 Start Full Game
             </Link>
           </div>
         </div>
@@ -327,12 +261,12 @@ export default function DemoPage() {
     );
   }
 
-  // 游戏进行中
+  // Game in progress
   return (
     <div className="demo-page">
       <div className="demo-game-header">
-        <h2>🎮 演示游戏进行中</h2>
-        <p>将 "{hiddenCard.title}" 拖拽到正确位置</p>
+        <h2>🎮 Demo Game In Progress</h2>
+        <p>Drag "{hiddenCard.title}" into the correct position</p>
       </div>
 
       <TimerBar
@@ -349,9 +283,9 @@ export default function DemoPage() {
       />
 
       <div className="demo-hints">
-        <p>💡 提示：观察已有卡片的坏运指数，思考新卡片应该在哪里</p>
+        <p>💡 Tip: Look at the bad luck index of the existing cards and decide where the new one fits</p>
         <p style={{ color: '#d32f2f', fontWeight: 'bold', marginTop: '0.5rem' }}>
-          ⚠️ 注意：答错或超时将永久失去这张卡片！
+          ⚠️ WARNING: Wrong guess or timeout will discard this card permanently!
         </p>
       </div>
     </div>
