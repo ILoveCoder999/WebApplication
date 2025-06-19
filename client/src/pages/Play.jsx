@@ -36,13 +36,11 @@ export default function Play() {
         console.log('🎮 Starting new game...');
         
         // 创建新游戏
-        //const res = await axios.post('/api/games');
-        //const { gameId, hand: initialHand } = res.data;
         const res = await axios.post('/api/games', {}, { withCredentials: true });
-const { gameId, hand: initialHand } = res.data;
-if (!gameId) {
-  throw new Error('No gameId returned from create game API');
-}
+        const { gameId, hand: initialHand } = res.data;
+        if (!gameId) {
+          throw new Error('No gameId returned from create game API');
+        }
         console.log(`🎯 Game created: ${gameId}`);
         console.log('🃏 Initial hand:', initialHand);
         
@@ -51,7 +49,6 @@ if (!gameId) {
         setHand(initialHand);
 
         // 获取第一张待猜卡
-        //const nextRes = await axios.get(`/api/games/${gameId}/next`);
         const nextRes = await axios.get(`/api/games/${gameId}/next`, { withCredentials: true });
 
         console.log('🎴 Next card:', nextRes.data);
@@ -135,8 +132,16 @@ if (!gameId) {
         setTimeout(() => setWrongGuess(false), 500);
 
         if (!over) {
-          // 继续同一张卡
-          setRoundIndex(prev => prev + 1);
+          // 猜错后进入下一轮，获取新卡片
+          try {
+            const nextRes = await axios.get(`/api/games/${currentGameId.current}/next`);
+            console.log('🎴 Next card after wrong guess:', nextRes.data);
+            setHiddenCard(nextRes.data);
+            setRoundIndex(prev => prev + 1);
+          } catch (nextErr) {
+            console.error('Failed to get next card after wrong guess:', nextErr);
+            setError('获取下一张卡片失败');
+          }
         } else {
           // 游戏失败
           console.log('💀 Game lost!');
@@ -149,11 +154,63 @@ if (!gameId) {
     }
   };
 
-  // 超时处理
-  const handleTimeUp = () => {
+  // 超时处理 - 修复后的版本
+  const handleTimeUp = async () => {
     console.log('⏰ Time up!');
     if (!hiddenCard || !currentGameId.current || isGameOver) return;
-    handleGuess(-1); // -1 表示超时
+    
+    try {
+      // 首先尝试专门的超时API
+      let res;
+      try {
+        res = await axios.post(`/api/games/${currentGameId.current}/timeout`, {
+          cardId: hiddenCard.id,
+        });
+      } catch (timeoutErr) {
+        // 如果没有专门的超时API，使用错误位置-1来表示超时
+        console.log('⏰ Using fallback timeout handling');
+        res = await axios.post(`/api/games/${currentGameId.current}/guess`, {
+          position: -1, // -1表示超时
+          cardId: hiddenCard.id,
+        });
+      }
+      
+      const {
+        wrongCount: newWrongCount,
+        isGameOver: over,
+        finalStatus: status,
+      } = res.data;
+
+      console.log(`⏰ Timeout result:`, { newWrongCount, over, status });
+
+      setWrongCount(newWrongCount);
+      setIsGameOver(over);
+      setFinalStatus(status);
+
+      // 显示错误动画
+      setWrongGuess(true);
+      setTimeout(() => setWrongGuess(false), 500);
+
+      if (!over) {
+        try {
+          // 超时后进入下一轮，获取新卡片
+          const nextRes = await axios.get(`/api/games/${currentGameId.current}/next`);
+          console.log('🎴 Next card after timeout:', nextRes.data);
+          setHiddenCard(nextRes.data);
+          setRoundIndex(prev => prev + 1);
+        } catch (nextErr) {
+          console.error('Failed to get next card after timeout:', nextErr);
+          setError('获取下一张卡片失败');
+        }
+      } else {
+        // 游戏失败
+        console.log('💀 Game lost due to timeout!');
+        setHiddenCard(null);
+      }
+    } catch (err) {
+      console.error('Error during timeout:', err);
+      setError('超时处理失败');
+    }
   };
 
   // 重新开始游戏
