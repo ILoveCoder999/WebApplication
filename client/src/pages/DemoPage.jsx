@@ -10,7 +10,6 @@ import lostLuggageImg from '../assets/images/2lost-luggage.png';
 import passportIssueImg from '../assets/images/3passport-issue.png';
 import hotelFullImg from '../assets/images/4hotel-full.png';
 
-
 // 演示用的模拟数据 - 使用旅行相关的倒霉事件
 const DEMO_INITIAL_HAND = [
   { id: 'demo1', title: '错过航班', imgUrl: missedFlightImg, badLuckIdx: 15.2 },
@@ -32,6 +31,7 @@ export default function DemoPage() {
   const [wrongGuess, setWrongGuess] = useState(false);
   const [userGuess, setUserGuess] = useState(null);
   const [timerKey, setTimerKey] = useState(0);
+  const [finalHand, setFinalHand] = useState([]); // 新增：保存最终手牌
 
   const handleStartGame = () => {
     setGameState('playing');
@@ -55,12 +55,14 @@ export default function DemoPage() {
       const newHand = [...hand];
       newHand.splice(position, 0, hiddenCard);
       setHand(newHand);
+      setFinalHand(newHand); // 保存最终手牌
       setHiddenCard(null);
     } else {
       // 答错了 - 卡牌被丢弃，不加入手牌
       setGameState('wrong');
       setWrongGuess(true);
       setTimeout(() => setWrongGuess(false), 500);
+      setFinalHand([...hand]); // 保存失败时的手牌（没有新卡）
       // 注意：手牌不更新，卡牌被丢弃
     }
   };
@@ -71,6 +73,7 @@ export default function DemoPage() {
       setGameState('timeout');
       setWrongGuess(true);
       setTimeout(() => setWrongGuess(false), 500);
+      setFinalHand([...hand]); // 保存超时时的手牌（没有新卡）
       // 注意：手牌不更新，卡牌被永久丢弃
     }
   };
@@ -82,6 +85,7 @@ export default function DemoPage() {
     setHiddenCard(DEMO_HIDDEN_CARD);
     setWrongGuess(false);
     setUserGuess(null);
+    setFinalHand([]);
   };
 
   const handlePlayAgain = () => {
@@ -91,8 +95,38 @@ export default function DemoPage() {
     setHiddenCard(DEMO_HIDDEN_CARD);
     setWrongGuess(false);
     setUserGuess(null);
+    setFinalHand([]);
     setTimerKey(prev => prev + 1); // 重置计时器
   };
+
+  // 渲染卡牌展示组件
+  const renderCardDisplay = (card, index) => (
+    <div key={`${card.id}-${index}`} className="demo-final-card-item">
+      <div className="demo-final-card-position">{index + 1}</div>
+      <div className="demo-final-card-content">
+        <img 
+          src={card.imgUrl} 
+          alt={card.title}
+          className="demo-final-card-image"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            const parent = e.target.parentNode;
+            if (parent) {
+              parent.style.background = 'linear-gradient(135deg, #e3f2fd, #bbdefb)';
+              parent.style.display = 'flex';
+              parent.style.alignItems = 'center';
+              parent.style.justifyContent = 'center';
+              parent.innerHTML = '<span style="color: #1976d2; font-weight: bold;">图片加载失败</span>';
+            }
+          }}
+        />
+        <div className="demo-final-card-info">
+          <div className="demo-final-card-title">{card.title}</div>
+          <div className="demo-final-card-index">Bad Luck: {card.badLuckIdx.toFixed(1)}</div>
+        </div>
+      </div>
+    </div>
+  );
 
   if (gameState === 'intro') {
     return (
@@ -160,18 +194,29 @@ export default function DemoPage() {
           <p>您正确地将它放在了第 {userGuess + 1} 个位置！</p>
           <p style={{ color: '#e8f5e8', fontWeight: 'bold' }}>✅ 卡片已加入您的手牌</p>
           
-          <div className="final-hand">
-            <h3>最终排序：</h3>
-            <div className="hand-display">
-              {hand.map((card, idx) => (
-                <div key={card.id} className="result-card">
-                  <span className="card-position">{idx + 1}</span>
-                  <span className="card-title">{card.title}</span>
-                  <span className="card-index">{card.badLuckIdx}</span>
-                </div>
-              ))}
+          {/* 显示获得的所有卡牌 */}
+          {finalHand.length > 0 && (
+            <div style={{
+              background: 'rgba(255,255,255,0.1)',
+              padding: '1.5rem',
+              borderRadius: '10px',
+              margin: '2rem 0',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <h3 style={{ marginBottom: '1rem' }}>🎴 您获得的所有卡牌：</h3>
+              <div className="demo-final-cards-grid">
+                {finalHand.map((card, index) => renderCardDisplay(card, index))}
+              </div>
+              <p style={{ 
+                marginTop: '1rem', 
+                fontSize: '0.9rem', 
+                opacity: 0.9,
+                fontStyle: 'italic' 
+              }}>
+                卡牌已按 Bad Luck 指数从低到高排序
+              </p>
             </div>
-          </div>
+          )}
 
           <div style={{
             background: 'rgba(255,255,255,0.1)',
@@ -182,7 +227,7 @@ export default function DemoPage() {
           }}>
             <h3>🎮 演示完成！</h3>
             <p style={{ marginBottom: '1rem' }}>
-              您已经体验了基本的游戏玩法。准备尝试完整版游戏了吗？
+              您已经体验了基本的游戏玩法，并成功收集了 {finalHand.length} 张卡牌。准备尝试完整版游戏了吗？
             </p>
           </div>
 
@@ -213,6 +258,30 @@ export default function DemoPage() {
           </p>
           <p>正确答案：应该放在第 3 个位置（在 25.8 和 45.6 之间）</p>
           
+          {/* 显示最终获得的卡牌（只有初始手牌） */}
+          {finalHand.length > 0 && (
+            <div style={{
+              background: 'rgba(255,255,255,0.1)',
+              padding: '1.5rem',
+              borderRadius: '10px',
+              margin: '2rem 0',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <h3 style={{ marginBottom: '1rem' }}>🎴 您保留的卡牌：</h3>
+              <div className="demo-final-cards-grid">
+                {finalHand.map((card, index) => renderCardDisplay(card, index))}
+              </div>
+              <p style={{ 
+                marginTop: '1rem', 
+                fontSize: '0.9rem', 
+                opacity: 0.9,
+                fontStyle: 'italic' 
+              }}>
+                只保留了初始的 {finalHand.length} 张卡牌，新卡片已丢失
+              </p>
+            </div>
+          )}
+          
           <div className="explanation">
             <h3>解释：</h3>
             <p>卡片应该按坏运指数从低到高排列：</p>
@@ -237,7 +306,7 @@ export default function DemoPage() {
           }}>
             <h3>🎮 演示完成！</h3>
             <p style={{ marginBottom: '1rem' }}>
-              虽然这次没有成功，但您已经了解了游戏的基本玩法和后果。
+              虽然这次没有成功获得新卡片，但您已经了解了游戏的基本玩法和后果。
               准备挑战完整版游戏了吗？
             </p>
           </div>

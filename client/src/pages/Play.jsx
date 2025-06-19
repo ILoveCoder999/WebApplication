@@ -18,6 +18,7 @@ export default function Play() {
   const [roundIndex, setRoundIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [finalHand, setFinalHand] = useState([]); // 新增：保存最终手牌
   
   // 防止重复初始化
   const initialized = useRef(false);
@@ -122,8 +123,9 @@ export default function Play() {
             setError('获取下一张卡片失败');
           }
         } else {
-          // 游戏胜利
+          // 游戏胜利 - 保存最终手牌
           console.log('🎉 Game won!');
+          setFinalHand(newHand);
           setHiddenCard(null);
         }
       } else {
@@ -144,8 +146,9 @@ export default function Play() {
             setError('获取下一张卡片失败');
           }
         } else {
-          // 游戏失败
+          // 游戏失败 - 保存当前手牌
           console.log('💀 Game lost!');
+          setFinalHand([...hand]); // 保存失败时的手牌
           setHiddenCard(null);
         }
       }
@@ -204,8 +207,9 @@ export default function Play() {
           setError('获取下一张卡片失败');
         }
       } else {
-        // 游戏失败
+        // 游戏失败 - 保存当前手牌
         console.log('💀 Game lost due to timeout!');
+        setFinalHand([...hand]); // 保存超时失败时的手牌
         setHiddenCard(null);
       }
     } catch (err) {
@@ -231,6 +235,7 @@ export default function Play() {
       setFinalStatus('');
       setWrongGuess(false);
       setRoundIndex(0);
+      setFinalHand([]); // 重置最终手牌
       
       // 创建新游戏
       const res = await axios.post('/api/games', {}, { withCredentials: true });
@@ -262,6 +267,35 @@ export default function Play() {
       setLoading(false);
     }
   };
+
+  // 渲染卡牌展示组件
+  const renderCardDisplay = (card, index) => (
+    <div key={`${card.id}-${index}`} className="final-card-item">
+      <div className="final-card-position">{index + 1}</div>
+      <div className="final-card-content">
+        <img 
+          src={card.imgUrl} 
+          alt={card.title}
+          className="final-card-image"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            const parent = e.target.parentNode;
+            if (parent) {
+              parent.style.background = 'linear-gradient(135deg, #e3f2fd, #bbdefb)';
+              parent.style.display = 'flex';
+              parent.style.alignItems = 'center';
+              parent.style.justifyContent = 'center';
+              parent.innerHTML = '<span style="color: #1976d2; font-weight: bold;">图片加载失败</span>';
+            }
+          }}
+        />
+        <div className="final-card-info">
+          <div className="final-card-title">{card.title}</div>
+          <div className="final-card-index">Bad Luck: {card.badLuckIdx.toFixed(1)}</div>
+        </div>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -329,7 +363,7 @@ export default function Play() {
           background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: '20px',
           margin: '2rem auto',
-          maxWidth: '600px',
+          maxWidth: '800px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
         }}>
           {finalStatus === 'won' ? (
@@ -340,33 +374,6 @@ export default function Play() {
               <p style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>
                 您成功完成了这轮游戏！
               </p>
-              <div style={{
-                background: 'linear-gradient(135deg, #4caf50, #8bc34a)',
-                color: 'white',
-                padding: '1.5rem',
-                borderRadius: '15px',
-                margin: '2rem 0',
-                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)'
-              }}>
-                <h3 style={{ margin: '0 0 1rem 0' }}>🏆 游戏统计</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{hand.length}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>获得卡牌</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{wrongCount}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>失误次数</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>#{gameId}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>游戏编号</div>
-                  </div>
-                </div>
-              </div>
-              <p style={{ marginBottom: '2rem', fontSize: '1rem', color: '#7f8c8d' }}>
-                您已成功收集了所有可能的卡牌！准备挑战新的一轮吗？
-              </p>
             </>
           ) : (
             <>
@@ -376,35 +383,88 @@ export default function Play() {
               <p style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>
                 这轮游戏已结束
               </p>
-              <div style={{
-                background: 'linear-gradient(135deg, #ff9800, #ff5722)',
-                color: 'white',
-                padding: '1.5rem',
-                borderRadius: '15px',
-                margin: '2rem 0',
-                boxShadow: '0 4px 15px rgba(255, 152, 0, 0.3)'
-              }}>
-                <h3 style={{ margin: '0 0 1rem 0' }}>📊 游戏统计</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{hand.length}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>获得卡牌</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>3</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>失误次数</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>#{gameId}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>游戏编号</div>
-                  </div>
-                </div>
-              </div>
-              <p style={{ marginBottom: '2rem', fontSize: '1rem', color: '#7f8c8d' }}>
-                不要灰心！每次游戏都是学习的机会。准备开始新的挑战吗？
-              </p>
             </>
           )}
+
+          {/* 游戏统计 */}
+          <div style={{
+            background: finalStatus === 'won' ? 
+              'linear-gradient(135deg, #4caf50, #8bc34a)' : 
+              'linear-gradient(135deg, #ff9800, #ff5722)',
+            color: 'white',
+            padding: '1.5rem',
+            borderRadius: '15px',
+            margin: '2rem 0',
+            boxShadow: finalStatus === 'won' ? 
+              '0 4px 15px rgba(76, 175, 80, 0.3)' : 
+              '0 4px 15px rgba(255, 152, 0, 0.3)'
+          }}>
+            <h3 style={{ margin: '0 0 1rem 0' }}>
+              {finalStatus === 'won' ? '🏆 游戏统计' : '📊 游戏统计'}
+            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{finalHand.length}</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>获得卡牌</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{wrongCount}</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>失误次数</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>#{gameId}</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>游戏编号</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 获得的卡牌展示 */}
+          {finalHand.length > 0 && (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.8)',
+              padding: '2rem',
+              borderRadius: '15px',
+              margin: '2rem 0',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{ color: '#2c3e50', marginBottom: '1.5rem', fontSize: '1.5rem' }}>
+                🎴 您获得的卡牌
+              </h3>
+              <div className="final-cards-grid">
+                {finalHand.map((card, index) => renderCardDisplay(card, index))}
+              </div>
+              <p style={{ 
+                marginTop: '1.5rem', 
+                color: '#7f8c8d', 
+                fontSize: '0.9rem',
+                fontStyle: 'italic'
+              }}>
+                卡牌已按 Bad Luck 指数从低到高排序
+              </p>
+            </div>
+          )}
+
+          {finalHand.length === 0 && (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.8)',
+              padding: '2rem',
+              borderRadius: '15px',
+              margin: '2rem 0',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{ color: '#e74c3c', marginBottom: '1rem' }}>😔 没有获得任何卡牌</h3>
+              <p style={{ color: '#7f8c8d' }}>
+                很遗憾，这次游戏没有成功收集到卡牌。不要灰心，继续挑战！
+              </p>
+            </div>
+          )}
+
+          <p style={{ marginBottom: '2rem', fontSize: '1rem', color: '#7f8c8d' }}>
+            {finalStatus === 'won' ? 
+              '您已成功收集了所有可能的卡牌！准备挑战新的一轮吗？' :
+              '不要灰心！每次游戏都是学习的机会。准备开始新的挑战吗？'
+            }
+          </p>
           
           <div style={{
             display: 'flex',
@@ -545,6 +605,134 @@ style.textContent = `
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+  
+  /* 最终卡牌展示样式 */
+  .final-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .final-card-item {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    position: relative;
+  }
+  
+  .final-card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .final-card-position {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .final-card-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .final-card-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  
+  .final-card-info {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .final-card-title {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    font-size: 0.9rem;
+  }
+  
+  .final-card-index {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .final-cards-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+    
+    .final-card-image {
+      height: 100px;
+    }
+    
+    .final-card-info {
+      padding: 0.75rem;
+    }
+    
+    .final-card-title {
+      font-size: 0.8rem;
+    }
+    
+    .final-card-index {
+      font-size: 0.7rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .final-cards-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.5rem;
+    }
+    
+    .final-card-image {
+      height: 80px;
+    }
+    
+    .final-card-info {
+      padding: 0.5rem;
+    }
+    
+    .final-card-title {
+      font-size: 0.7rem;
+    }
+    
+    .final-card-index {
+      font-size: 0.65rem;
+    }
+    
+    .final-card-position {
+      width: 20px;
+      height: 20px;
+      font-size: 0.7rem;
+    }
   }
 `;
 document.head.appendChild(style);

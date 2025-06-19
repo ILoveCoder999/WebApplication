@@ -316,6 +316,82 @@
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
+/* 演示页面卡牌展示样式 */
+.demo-final-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.demo-final-card-item {
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  position: relative;
+  backdrop-filter: blur(5px);
+}
+
+.demo-final-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.demo-final-card-position {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(255,255,255,0.9);
+  color: #333;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.7rem;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.demo-final-card-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.demo-final-card-image {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.demo-final-card-info {
+  padding: 0.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.demo-final-card-title {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+  font-size: 0.75rem;
+}
+
+.demo-final-card-index {
+  color: rgba(255,255,255,0.9);
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .demo-page {
@@ -344,5 +420,61 @@
   .btn-retry, .btn-rules, .btn-register {
     width: 100%;
     max-width: 200px;
+  }
+
+  .demo-final-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+  
+  .demo-final-card-image {
+    height: 70px;
+  }
+  
+  .demo-final-card-info {
+    padding: 0.4rem;
+  }
+  
+  .demo-final-card-title {
+    font-size: 0.7rem;
+  }
+  
+  .demo-final-card-index {
+    font-size: 0.6rem;
+  }
+  
+  .demo-final-card-position {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .demo-final-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.4rem;
+  }
+  
+  .demo-final-card-image {
+    height: 60px;
+  }
+  
+  .demo-final-card-info {
+    padding: 0.3rem;
+  }
+  
+  .demo-final-card-title {
+    font-size: 0.65rem;
+  }
+  
+  .demo-final-card-index {
+    font-size: 0.55rem;
+  }
+  
+  .demo-final-card-position {
+    width: 16px;
+    height: 16px;
+    font-size: 0.6rem;
   }
 }
