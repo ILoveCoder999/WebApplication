@@ -15,18 +15,18 @@ export default function Login(){
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try{
       const res = await axios.post('/api/login', {username, password});
       setUser(res.data);
       navigate('/play');
     }catch(err){
       if (err.response?.status === 404) {
-        setError('服务器连接失败，请检查后端是否启动');
+        setError('Server connection failed. Is the backend running?');
       } else if (err.response?.status === 401) {
-        setError('用户名或密码错误');
+        setError('Invalid username or password');
       } else {
-        setError('登录失败，请稍后重试');
+        setError('Login failed. Please try again later.');
       }
       console.error('Login error:', err);
     } finally {
@@ -59,8 +59,8 @@ export default function Login(){
         }}>
           🎮 Stuff Happens
         </h1>
-        
-        {/* 演示账号提示 */}
+
+        {/* Demo account notice */}
         <div style={{
           background: 'linear-gradient(45deg, #e3f2fd, #bbdefb)',
           padding: '1rem',
@@ -70,14 +70,14 @@ export default function Login(){
           border: '1px solid #2196f3'
         }}>
           <p style={{ margin: 0, color: '#1976d2', fontWeight: 'bold' }}>
-            演示账号
+            Demo Account
           </p>
           <p style={{ margin: '0.5rem 0 0 0', color: '#1976d2' }}>
-            用户名: <strong>demo</strong><br/>
-            密码: <strong>demo</strong>
+            Username: <strong>demo</strong><br/>
+            Password: <strong>demo</strong>
           </p>
         </div>
-        
+
         <form onSubmit={handleSubmit} style={{
           display: 'flex',
           flexDirection: 'column',
@@ -92,7 +92,7 @@ export default function Login(){
               fontSize: '1rem',
               background: 'rgba(255, 255, 255, 0.9)'
             }}
-            placeholder='用户名' 
+            placeholder='Username' 
             value={username} 
             onChange={e => setUsername(e.target.value)}
             required
@@ -108,14 +108,14 @@ export default function Login(){
               fontSize: '1rem',
               background: 'rgba(255, 255, 255, 0.9)'
             }}
-            placeholder='密码' 
+            placeholder='Password' 
             value={password} 
             onChange={e => setPassword(e.target.value)}
             required
             disabled={loading}
             autoComplete="current-password"
           />
-          
+
           {error && (
             <div style={{
               color: '#e74c3c', 
@@ -129,7 +129,7 @@ export default function Login(){
               {error}
             </div>
           )}
-          
+
           <button 
             style={{
               background: 'linear-gradient(45deg, #3498db, #2980b9)',
@@ -145,23 +145,23 @@ export default function Login(){
             type='submit'
             disabled={loading}
           >
-            {loading ? '🔄 登录中...' : '🔑 登录'}
+            {loading ? '🔄 Logging in...' : '🔑 Log In'}
           </button>
         </form>
-        
+
         <div style={{
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem'
         }}>
-          {/* 注册提示 */}
+          {/* Sign up prompt */}
           <div style={{
             color: '#7f8c8d',
             fontSize: '0.9rem',
             marginBottom: '0.5rem'
           }}>
-            还没有账户？
+            Don't have an account?
             <Link 
               to='/register' 
               style={{
@@ -171,10 +171,10 @@ export default function Login(){
                 marginLeft: '0.5rem'
               }}
             >
-              立即注册
+              Sign Up
             </Link>
           </div>
-          
+
           <Link 
             to='/rules' 
             style={{
@@ -196,7 +196,7 @@ export default function Login(){
               e.target.style.color = '#3498db';
             }}
           >
-            📖 游戏规则
+            📖 Game Rules
           </Link>
           <Link 
             to='/demo' 
@@ -219,7 +219,7 @@ export default function Login(){
               e.target.style.color = '#27ae60';
             }}
           >
-            🎮 试玩演示
+            🎮 Try Demo
           </Link>
         </div>
       </div>
