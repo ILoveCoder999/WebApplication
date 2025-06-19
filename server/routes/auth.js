@@ -7,22 +7,22 @@ import { db, queries } from '../db/init.js';
 
 const router = express.Router();
 
-// 登录路由
+// Login route
 router.post('/login', (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) {
       console.error('Login error:', err);
-      return res.status(500).json({ message: '服务器错误' });
+      return res.status(500).json({ message: 'Server error' });
     }
     
     if (!user) {
-      return res.status(401).json({ message: info.message || '登录失败' });
+      return res.status(401).json({ message: info.message || 'Login failed' });
     }
     
     req.logIn(user, (err) => {
       if (err) {
         console.error('Session error:', err);
-        return res.status(500).json({ message: '会话创建失败' });
+        return res.status(500).json({ message: 'Session creation failed' });
       }
       
       console.log(`✅ User ${user.username} logged in successfully`);
@@ -35,33 +35,33 @@ router.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
-// 注销路由
+// Logout route
 router.post('/logout', (req, res) => {
   const username = req.user?.username;
   
   req.logout((err) => {
     if (err) {
       console.error('Logout error:', err);
-      return res.status(500).json({ message: '注销失败' });
+      return res.status(500).json({ message: 'Logout failed' });
     }
     
     req.session.destroy((err) => {
       if (err) {
         console.error('Session destroy error:', err);
-        return res.status(500).json({ message: '会话销毁失败' });
+        return res.status(500).json({ message: 'Session destruction failed' });
       }
       
-      res.clearCookie('connect.sid'); // 清除会话cookie
+      res.clearCookie('connect.sid'); // Clear session cookie
       console.log(`✅ User ${username || 'unknown'} logged out successfully`);
-      res.json({ success: true, message: '注销成功' });
+      res.json({ success: true, message: 'Logged out successfully' });
     });
   });
 });
 
-// 获取当前用户信息
+// Get current user information
 router.get('/me', (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: '未登录' });
+    return res.status(401).json({ message: 'Not logged in' });
   }
   
   res.json({
@@ -71,7 +71,7 @@ router.get('/me', (req, res) => {
   });
 });
 
-// 检查认证状态
+// Check authentication status
 router.get('/status', (req, res) => {
   res.json({
     isAuthenticated: req.isAuthenticated(),
@@ -82,53 +82,53 @@ router.get('/status', (req, res) => {
   });
 });
 
-// 注册路由（可选 - 根据需求决定是否启用）
+// Register route (optional - decide whether to enable based on requirements)
 router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    // 验证输入
+    // Validate input
     if (!username || !password) {
-      return res.status(400).json({ message: '用户名和密码不能为空' });
+      return res.status(400).json({ message: 'Username and password cannot be empty' });
     }
     
     if (username.length < 3 || username.length > 20) {
-      return res.status(400).json({ message: '用户名长度必须在3-20个字符之间' });
+      return res.status(400).json({ message: 'Username length must be between 3-20 characters' });
     }
     
     if (password.length < 4) {
-      return res.status(400).json({ message: '密码长度至少4个字符' });
+      return res.status(400).json({ message: 'Password must be at least 4 characters long' });
     }
     
-    // 检查用户名是否已存在
+    // Check if username already exists
     const existingUser = queries.findUserByUsername.get(username);
     if (existingUser) {
-      return res.status(409).json({ message: '用户名已存在' });
+      return res.status(409).json({ message: 'Username already exists' });
     }
     
-    // 哈希密码
+    // Hash password
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    // 创建用户
+    // Create user
     const result = queries.createUser.run(username, hashedPassword);
     const userId = result.lastInsertRowid;
     
     console.log(`✅ New user registered: ${username} (ID: ${userId})`);
     
-    // 自动登录新用户
+    // Automatically log in the new user
     const newUser = queries.findUserById.get(userId);
     req.logIn(newUser, (err) => {
       if (err) {
         console.error('Auto-login error:', err);
         return res.status(201).json({ 
-          message: '注册成功，请重新登录',
+          message: 'Registration successful, please log in again',
           userId: userId
         });
       }
       
       res.status(201).json({
-        message: '注册成功',
+        message: 'Registration successful',
         user: {
           id: newUser.id,
           username: newUser.username
@@ -139,51 +139,53 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      return res.status(409).json({ message: '用户名已存在' });
+      return res.status(409).json({ message: 'Username already exists' });
     }
-    res.status(500).json({ message: '注册失败，请稍后重试' });
+    res.status(500).json({ message: 'Registration failed, please try again later' });
   }
 });
 
-// 更改密码路由
+// Change password route
 router.post('/change-password', async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: '未登录' });
+    return res.status(401).json({ message: 'Not logged in' });
   }
   
   try {
     const { currentPassword, newPassword } = req.body;
     
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: '当前密码和新密码不能为空' });
+      return res.status(400).json({ message: 'Current password and new password cannot be empty' });
     }
     
     if (newPassword.length < 4) {
-      return res.status(400).json({ message: '新密码长度至少4个字符' });
+      return res.status(400).json({ message: 'New password must be at least 4 characters long' });
     }
     
-    // 获取用户当前密码
+    // Get user's current password
    const user = db.prepare(`
   SELECT * FROM users 
   WHERE id = ?
 `).get(req.user.id);
 
-const isValidPassword = await bcrypt.compare(password, user.password);
-if (!isValidPassword) {
-  return res.status(401).json({ message: 'Invalid password' });
-}
-    // 哈希新密码
+    // This line "const isValidPassword = await bcrypt.compare(password, user.password);" contains an error.
+    // The variable 'password' is not defined in this scope. It should be 'currentPassword'.
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password); // Corrected line
+    if (!isValidPassword) {
+      return res.status(401).json({ message: 'Invalid current password' }); // Corrected message
+    }
+    // Hash the new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
     
-    // 更新密码
+    // Update password
     db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashedNewPassword, req.user.id);
     
     console.log(`✅ User ${req.user.username} changed password`);
-    res.json({ message: '密码修改成功' });
+    res.json({ message: 'Password changed successfully' });
     
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({ message: '密码修改失败' });
+    res.status(500).json({ message: 'Failed to change password' });
   }
 });
 

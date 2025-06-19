@@ -23,12 +23,12 @@ export default function Profile() {
       try {
         const response = await axios.get('/api/games/history', { withCredentials: true });
         
-        // 按日期排序（最新的在前）
+        // Sort by date (newest first)
         const sortedHistory = response.data.sort((a, b) => 
           new Date(b.startedAt) - new Date(a.startedAt)
         );
         
-        // 调试：检查数据结构
+        // Debugging: check data structure
         console.log('Game history data:', sortedHistory);
         if (sortedHistory.length > 0) {
           console.log('First game initial cards:', sortedHistory[0].initialCards);
@@ -37,7 +37,7 @@ export default function Profile() {
         
         setGameHistory(sortedHistory);
         
-        // 计算统计数据
+        // Calculate statistics
         const totalGames = sortedHistory.length;
         const wins = sortedHistory.filter(game => game.status === 'won').length;
         const losses = totalGames - wins;
@@ -66,7 +66,7 @@ export default function Profile() {
   }, []);
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -89,7 +89,7 @@ export default function Profile() {
     setSelectedGame(selectedGame === gameId ? null : gameId);
   };
 
-  // 渲染卡牌项目
+  // Render card item
   const renderCardItem = (card, cardType, roundNumber = null) => {
     const isInitialCard = cardType === 'initial';
     const isWonCard = cardType === 'won';
@@ -106,7 +106,7 @@ export default function Profile() {
              roundNumber ? roundNumber :
              '❌'}
           </div>
-          {/* 添加卡牌图片 */}
+          {/* Add card image */}
           <div className="card-image-container">
             {card.imgUrl ? (
               <img 
@@ -134,26 +134,26 @@ export default function Profile() {
         <div className="card-item-right">
           {isInitialCard && (
             <div className="card-status initial">
-              初始获得
+              Initially Obtained
             </div>
           )}
           {isWonCard && (
             <>
               <div className="card-round">
-                第 {roundNumber} 轮
+                Round {roundNumber}
               </div>
               <div className="card-status won">
-                ✅ 猜对获得
+                ✅ Guessed Correctly
               </div>
             </>
           )}
           {isLostCard && (
             <>
               <div className="card-round">
-                第 {roundNumber} 轮
+                Round {roundNumber}
               </div>
               <div className="card-status lost">
-                ❌ 猜错丢弃
+                ❌ Guessed Wrong, Discarded
               </div>
             </>
           )}
@@ -167,7 +167,7 @@ export default function Profile() {
       <div className="profile-page">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          加载中...
+          Loading...
         </div>
       </div>
     );
@@ -176,55 +176,55 @@ export default function Profile() {
   return (
     <div className="profile-page">
       <div className="profile-container">
-        {/* 用户信息 */}
+        {/* User Information */}
         <div className="profile-header">
-          <h1>👤 个人资料</h1>
-          <p className="username">欢迎, {user?.username || '玩家'}!</p>
+          <h1>👤 Profile</h1>
+          <p className="username">Welcome, {user?.username || 'Player'}!</p>
         </div>
 
-        {/* 统计信息 */}
+        {/* Statistics Section */}
         <div className="stats-section">
-          <h2>📊 游戏统计</h2>
+          <h2>📊 Game Statistics</h2>
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-number">{stats.totalGames}</div>
-              <div className="stat-label">总游戏数</div>
+              <div className="stat-label">Total Games</div>
             </div>
             <div className="stat-card wins">
               <div className="stat-number">{stats.wins}</div>
-              <div className="stat-label">胜利</div>
+              <div className="stat-label">Wins</div>
             </div>
             <div className="stat-card losses">
               <div className="stat-number">{stats.losses}</div>
-              <div className="stat-label">失败</div>
+              <div className="stat-label">Losses</div>
             </div>
             <div className="stat-card winrate">
               <div className="stat-number">{stats.winRate}%</div>
-              <div className="stat-label">胜率</div>
+              <div className="stat-label">Win Rate</div>
             </div>
             <div className="stat-card">
               <div className="stat-number">{stats.totalCardsCollected}</div>
-              <div className="stat-label">收集卡牌</div>
+              <div className="stat-label">Cards Collected</div>
             </div>
             <div className="stat-card">
               <div className="stat-number">{stats.averageCardsPerGame}</div>
-              <div className="stat-label">平均每局</div>
+              <div className="stat-label">Avg. Cards per Game</div>
             </div>
           </div>
         </div>
 
-        {/* 游戏历史 */}
+        {/* Game History */}
         <div className="history-section">
-          <h2>🎮 游戏历史记录</h2>
+          <h2>🎮 Game History</h2>
           <p style={{ textAlign: 'center', color: '#7f8c8d', marginBottom: '1.5rem' }}>
-            按日期排序，最新的游戏在前
+            Sorted by date, newest games first
           </p>
           
           {gameHistory.length === 0 ? (
             <div className="no-history">
-              <p>还没有游戏记录</p>
+              <p>No game records yet</p>
               <Link to="/play" className="btn-start-playing">
-                开始第一场游戏
+                Start your first game
               </Link>
             </div>
           ) : (
@@ -235,55 +235,55 @@ export default function Profile() {
                   className={`history-item ${game.status}`}
                   onClick={() => toggleGameDetails(game.id)}
                 >
-                  {/* 游戏概览 */}
+                  {/* Game Overview */}
                   <div className="game-info">
                     <div>
                       <div className="game-date">
-                        游戏 #{game.id} - {formatDate(game.startedAt)}
+                        Game #{game.id} - {formatDate(game.startedAt)}
                       </div>
                       <div className={`game-status ${game.status}`}>
-                        {game.status === 'won' ? '🏆 胜利' : '😔 失败'}
+                        {game.status === 'won' ? '🏆 Win' : '😔 Loss'}
                       </div>
                     </div>
                     <div className="game-summary">
-                      <div>游戏时长: {getGameDuration(game.startedAt, game.endedAt)}</div>
-                      <div>收集卡牌: {game.stats.totalCards}/6</div>
-                      <div style={{ fontSize: '0.8rem', color: '#95a5a6' }}>👆 点击查看详情</div>
+                      <div>Duration: {getGameDuration(game.startedAt, game.endedAt)}</div>
+                      <div>Cards Collected: {game.stats.totalCards}/6</div>
+                      <div style={{ fontSize: '0.8rem', color: '#95a5a6' }}>👆 Click for details</div>
                     </div>
                   </div>
 
-                  {/* 快速统计 */}
+                  {/* Quick Stats */}
                   <div className="game-quick-stats">
                     <div className="quick-stat">
                       <div className="quick-stat-number">{game.initialCards.length}</div>
-                      <div className="quick-stat-label">初始手牌</div>
+                      <div className="quick-stat-label">Initial Hand</div>
                     </div>
                     <div className="quick-stat">
                       <div className="quick-stat-number">{game.wrongCount}/3</div>
-                      <div className="quick-stat-label">失误次数</div>
+                      <div className="quick-stat-label">Mistakes</div>
                     </div>
                     <div className="quick-stat">
                       <div className="quick-stat-number">{game.stats.totalRounds}</div>
-                      <div className="quick-stat-label">游戏轮次</div>
+                      <div className="quick-stat-label">Rounds Played</div>
                     </div>
                     <div className="quick-stat">
                       <div className="quick-stat-number">{game.stats.wonRounds}</div>
-                      <div className="quick-stat-label">成功轮次</div>
+                      <div className="quick-stat-label">Successful Rounds</div>
                     </div>
                   </div>
 
-                  {/* 详细信息（可展开） */}
+                  {/* Detailed Information (Expandable) */}
                   {selectedGame === game.id && (
                     <div className="game-details-expanded">
-                      {/* 所有涉及的卡牌 - 按类型分组 */}
+                      {/* All cards involved - grouped by type */}
                       <div className="cards-section">
-                        <h4>🃏 本局游戏涉及的所有卡牌</h4>
+                        <h4>🃏 All Cards Involved in this Game</h4>
                         
-                        {/* 初始卡牌部分 */}
+                        {/* Initial Cards Section */}
                         <div className="initial-cards-section">
                           <h5 className="section-title initial">
-                            🎯 初始手牌
-                            <span className="section-badge">游戏开始时自动获得</span>
+                            🎯 Initial Hand
+                            <span className="section-badge">Automatically obtained at game start</span>
                           </h5>
                           <div className="cards-list">
                             {game.initialCards.map(card => 
@@ -292,18 +292,18 @@ export default function Profile() {
                           </div>
                         </div>
 
-                        {/* 游戏轮次卡牌部分 */}
+                        {/* Game Round Cards Section */}
                         {game.gameCards.length > 0 && (
                           <div className="game-cards-section">
                             <h5 className="section-title">
-                              🎲 游戏轮次卡牌
-                              <span className="section-badge">共 {game.gameCards.length} 轮</span>
+                              🎲 Game Round Cards
+                              <span className="section-badge">{game.gameCards.length} Rounds total</span>
                             </h5>
                             
-                            {/* 获得的卡牌 */}
+                            {/* Cards Won */}
                             {game.gameCards.filter(card => card.guessedCorrect).length > 0 && (
                               <div className="won-cards-subsection">
-                                <h6 className="subsection-title won">✅ 猜对获得的卡牌:</h6>
+                                <h6 className="subsection-title won">✅ Cards Won:</h6>
                                 <div className="cards-list">
                                   {game.gameCards
                                     .filter(card => card.guessedCorrect)
@@ -313,10 +313,10 @@ export default function Profile() {
                               </div>
                             )}
 
-                            {/* 丢弃的卡牌 */}
+                            {/* Cards Lost */}
                             {game.gameCards.filter(card => !card.guessedCorrect).length > 0 && (
                               <div className="lost-cards-subsection">
-                                <h6 className="subsection-title lost">❌ 猜错丢弃的卡牌:</h6>
+                                <h6 className="subsection-title lost">❌ Cards Discarded:</h6>
                                 <div className="cards-list">
                                   {game.gameCards
                                     .filter(card => !card.guessedCorrect)
@@ -328,18 +328,18 @@ export default function Profile() {
                           </div>
                         )}
 
-                        {/* 如果没有游戏轮次 */}
+                        {/* If no game rounds were played */}
                         {game.gameCards.length === 0 && (
                           <div className="no-rounds-notice">
-                            <p>⚠️ 本局游戏没有进行任何轮次，只保留了初始手牌。</p>
+                            <p>⚠️ No rounds were played in this game. Only initial hand was kept.</p>
                           </div>
                         )}
                       </div>
 
-                      {/* 游戏总结 */}
+                      {/* Game Summary */}
                       <div className={`game-final-summary ${game.status}`}>
                         <h4>
-                          📊 游戏总结
+                          📊 Game Summary
                           {game.status === 'won' ? 
                             <span style={{ marginLeft: '0.5rem', color: '#4caf50' }}>🏆</span> : 
                             <span style={{ marginLeft: '0.5rem', color: '#f44336' }}>💔</span>
@@ -347,28 +347,28 @@ export default function Profile() {
                         </h4>
                         <div className="summary-details">
                           <p>
-                            <strong>游戏结果:</strong> 
+                            <strong>Game Result:</strong> 
                             {game.status === 'won' ? 
-                              ' 🎉 恭喜胜利！成功收集了所有可能的卡牌。' : 
-                              ' 😔 游戏失败，失误次数达到上限。'
+                              ' 🎉 Congratulations, you won! You successfully collected all possible cards.' : 
+                              ' 😔 Game over, maximum mistakes reached.'
                             }
                           </p>
                           <p>
-                            <strong>最终收集:</strong> 
-                            {' '}{game.stats.totalCards} 张卡牌 
-                            (初始获得 {game.initialCards.length} 张 + 游戏中获得 {game.stats.wonRounds} 张)
+                            <strong>Final Collection:</strong> 
+                            {' '}{game.stats.totalCards} cards 
+                            (Initially obtained {game.initialCards.length} + Won {game.stats.wonRounds} during game)
                           </p>
                           <p>
-                            <strong>轮次表现:</strong> 
+                            <strong>Round Performance:</strong> 
                             {game.stats.totalRounds > 0 ? 
-                              ` ${game.stats.wonRounds}/${game.stats.totalRounds} 轮成功 (${((game.stats.wonRounds / game.stats.totalRounds) * 100).toFixed(1)}%)` : 
-                              ' 未进行游戏轮次'
+                              ` ${game.stats.wonRounds}/${game.stats.totalRounds} rounds successful (${((game.stats.wonRounds / game.stats.totalRounds) * 100).toFixed(1)}%)` : 
+                              ' No game rounds played'
                             }
                           </p>
                           <p>
-                            <strong>失误情况:</strong> 
-                            {' '}{game.wrongCount}/3 次失误
-                            {game.wrongCount === 3 && ' (达到上限，游戏结束)'}
+                            <strong>Mistakes:</strong> 
+                            {' '}{game.wrongCount}/3 mistakes
+                            {game.wrongCount === 3 && ' (Maximum reached, game over)'}
                           </p>
                         </div>
                       </div>
@@ -380,26 +380,26 @@ export default function Profile() {
           )}
         </div>
 
-        {/* 操作按钮 */}
+        {/* Action Buttons */}
         <div className="profile-actions">
           <Link to="/play" className="btn-play">
-            🎮 继续游戏
+            🎮 Continue Playing
           </Link>
           <Link to="/demo" className="btn-demo">
-            🎯 练习模式
+            🎯 Practice Mode
           </Link>
           <Link to="/rules" className="btn-rules">
-            📖 游戏规则
+            📖 Game Rules
           </Link>
         </div>
 
-        {/* 底部说明 */}
+        {/* Footer Note */}
         <div style={{ marginTop: '2rem', textAlign: 'center' }}>
           <p style={{ fontSize: '0.9rem', color: '#7f8c8d', marginBottom: '0.5rem' }}>
-            💡 点击游戏记录可以查看每局游戏的详细卡牌信息
+            💡 Click on a game record to view detailed card information for that game
           </p>
           <p style={{ fontSize: '0.8rem', color: '#95a5a6' }}>
-            历史记录按日期排序，显示所有涉及的卡牌及其获得情况
+            History records are sorted by date, showing all involved cards and their acquisition status
           </p>
         </div>
       </div>

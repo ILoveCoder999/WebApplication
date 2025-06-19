@@ -20,7 +20,7 @@ export default function Register() {
       ...formData,
       [e.target.name]: e.target.value
     });
-    // 清除之前的错误信息
+    // Clear previous error messages
     if (error) setError('');
     if (success) setSuccess('');
   };
@@ -29,27 +29,27 @@ export default function Register() {
     const { username, password, confirmPassword } = formData;
     
     if (!username || !password || !confirmPassword) {
-      setError('所有字段都是必填的');
+      setError('All fields are required');
       return false;
     }
     
     if (username.length < 3 || username.length > 20) {
-      setError('用户名长度必须在3-20个字符之间');
+      setError('Username length must be between 3-20 characters');
       return false;
     }
     
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      setError('用户名只能包含字母、数字和下划线');
+      setError('Username can only contain letters, numbers, and underscores');
       return false;
     }
     
     if (password.length < 4) {
-      setError('密码长度至少4个字符');
+      setError('Password must be at least 4 characters long');
       return false;
     }
     
     if (password !== confirmPassword) {
-      setError('两次输入的密码不一致');
+      setError('Passwords do not match');
       return false;
     }
     
@@ -71,9 +71,9 @@ export default function Register() {
         password: formData.password
       });
       
-      // 注册成功，自动登录
+      // Registration successful, automatically log in
       setUser(res.data.user);
-      setSuccess('注册成功！正在跳转...');
+      setSuccess('Registration successful! Redirecting...');
       
       setTimeout(() => {
         navigate('/play');
@@ -81,13 +81,13 @@ export default function Register() {
       
     } catch (err) {
       if (err.response?.status === 409) {
-        setError('用户名已存在，请选择其他用户名');
+        setError('Username already exists, please choose another username');
       } else if (err.response?.status === 400) {
-        setError(err.response.data.message || '注册信息有误');
+        setError(err.response.data.message || 'Invalid registration information');
       } else if (err.response?.status === 404) {
-        setError('服务器连接失败，请检查后端是否启动');
+        setError('Server connection failed, please check if the backend is running');
       } else {
-        setError('注册失败，请稍后重试');
+        setError('Registration failed, please try again later');
       }
       console.error('Registration error:', err);
     } finally {
@@ -118,10 +118,10 @@ export default function Register() {
           marginBottom: '2rem',
           color: '#2c3e50'
         }}>
-          🎮 注册新账户
+          🎮 Register New Account
         </h1>
         
-        {/* 注册说明 */}
+        {/* Registration Instructions */}
         <div style={{
           background: 'linear-gradient(45deg, #e8f5e8, #c8e6c9)',
           padding: '1rem',
@@ -131,12 +131,12 @@ export default function Register() {
           border: '1px solid #4caf50'
         }}>
           <p style={{ margin: 0, color: '#2e7d32', fontWeight: 'bold' }}>
-            创建账户享受完整游戏体验
+            Create an account to enjoy the full game experience
           </p>
           <p style={{ margin: '0.5rem 0 0 0', color: '#2e7d32', fontSize: '0.9rem' }}>
-            • 保存游戏进度和统计<br/>
-            • 查看历史记录<br/>
-            • 个性化游戏体验
+            • Save game progress and stats<br/>
+            • View history<br/>
+            • Personalize your game experience
           </p>
         </div>
         
@@ -156,7 +156,7 @@ export default function Register() {
               fontSize: '1rem',
               background: 'rgba(255, 255, 255, 0.9)'
             }}
-            placeholder='用户名 (3-20个字符)' 
+            placeholder='Username (3-20 characters)' 
             value={formData.username} 
             onChange={handleChange}
             required
@@ -174,7 +174,7 @@ export default function Register() {
               fontSize: '1rem',
               background: 'rgba(255, 255, 255, 0.9)'
             }}
-            placeholder='密码 (至少4个字符)' 
+            placeholder='Password (at least 4 characters)' 
             value={formData.password} 
             onChange={handleChange}
             required
@@ -192,7 +192,7 @@ export default function Register() {
               fontSize: '1rem',
               background: 'rgba(255, 255, 255, 0.9)'
             }}
-            placeholder='确认密码' 
+            placeholder='Confirm Password' 
             value={formData.confirmPassword} 
             onChange={handleChange}
             required
@@ -244,7 +244,7 @@ export default function Register() {
             type='submit'
             disabled={loading}
           >
-            {loading ? '🔄 注册中...' : '🎮 创建账户'}
+            {loading ? '🔄 Registering...' : '🎮 Create Account'}
           </button>
         </form>
         
@@ -258,7 +258,7 @@ export default function Register() {
             color: '#7f8c8d',
             fontSize: '0.9rem'
           }}>
-            已有账户？
+            Already have an account?
             <Link 
               to='/login' 
               style={{
@@ -268,7 +268,7 @@ export default function Register() {
                 marginLeft: '0.5rem'
               }}
             >
-              立即登录
+              Log In
             </Link>
           </div>
           
@@ -293,7 +293,7 @@ export default function Register() {
               e.target.style.color = '#3498db';
             }}
           >
-            📖 游戏规则
+            📖 Game Rules
           </Link>
           
           <Link 
@@ -317,7 +317,7 @@ export default function Register() {
               e.target.style.color = '#27ae60';
             }}
           >
-            🎮 试玩演示
+            🎮 Play Demo
           </Link>
         </div>
       </div>

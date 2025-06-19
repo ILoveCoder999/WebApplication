@@ -18,7 +18,7 @@ export default function Header() {
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
-      // 即使登出失败，也清除本地用户状态
+      // Even if logout fails, clear local user state
       setUser(null);
       navigate('/');
     } finally {
@@ -31,42 +31,42 @@ export default function Header() {
   return (
     <header className="app-header">
       <div className="header-container">
-        {/* Logo区域 */}
+        {/* Logo Area */}
         <div className="header-logo">
           <Link to="/play" className="logo-link">
             🎮 <span className="logo-text">Stuff Happens</span>
           </Link>
         </div>
 
-        {/* 导航菜单 */}
+        {/* Navigation Menu */}
         <nav className="header-nav">
           <Link 
             to="/play" 
             className={`nav-link ${isActive('/play') ? 'active' : ''}`}
           >
-            🎯 游戏
+            🎯 Play
           </Link>
           <Link 
             to="/profile" 
             className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
           >
-            📊 统计
+            📊 Stats
           </Link>
           <Link 
             to="/demo" 
             className={`nav-link ${isActive('/demo') ? 'active' : ''}`}
           >
-            🎮 演示
+            🎮 Demo
           </Link>
           <Link 
             to="/rules" 
             className={`nav-link ${isActive('/rules') ? 'active' : ''}`}
           >
-            📖 规则
+            📖 Rules
           </Link>
         </nav>
 
-        {/* 用户区域 */}
+        {/* User Area */}
         <div className="header-user">
           <span className="user-welcome">
             👤 {user?.username}
@@ -76,21 +76,21 @@ export default function Header() {
             disabled={loading}
             className="logout-btn"
           >
-            {loading ? '🔄' : '🚪'} {loading ? '退出中...' : '退出'}
+            {loading ? '🔄' : '🚪'} {loading ? 'Logging out...' : 'Log Out'}
           </button>
         </div>
 
-        {/* 移动端菜单按钮 */}
+        {/* Mobile Menu Button */}
         <div className="mobile-menu">
           <details className="mobile-dropdown">
             <summary className="mobile-menu-btn">
               ☰
             </summary>
             <div className="mobile-menu-content">
-              <Link to="/play" className="mobile-nav-link">🎯 游戏</Link>
-              <Link to="/profile" className="mobile-nav-link">📊 统计</Link>
-              <Link to="/demo" className="mobile-nav-link">🎮 演示</Link>
-              <Link to="/rules" className="mobile-nav-link">📖 规则</Link>
+              <Link to="/play" className="mobile-nav-link">🎯 Play</Link>
+              <Link to="/profile" className="mobile-nav-link">📊 Stats</Link>
+              <Link to="/demo" className="mobile-nav-link">🎮 Demo</Link>
+              <Link to="/rules" className="mobile-nav-link">📖 Rules</Link>
               <hr className="mobile-divider" />
               <div className="mobile-user-info">👤 {user?.username}</div>
               <button 
@@ -98,7 +98,7 @@ export default function Header() {
                 disabled={loading}
                 className="mobile-logout-btn"
               >
-                {loading ? '🔄 退出中...' : '🚪 退出'}
+                {loading ? '🔄 Logging out...' : '🚪 Log Out'}
               </button>
             </div>
           </details>
