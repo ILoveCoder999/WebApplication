@@ -1,6 +1,7 @@
 // File: client/src/pages/Play.jsx
 
 import React, { useEffect, useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import GameBoard from '../components/GameBoard.jsx';
 import TimerBar from '../components/TimerBar.jsx';
@@ -99,7 +100,7 @@ export default function Play() {
       setFinalStatus(status);
 
       if (correct) {
-        // 猜对了
+        // 猜对了 - 获得卡牌并加入手牌
         setWrongGuess(false);
         
         // 更新手牌
@@ -107,7 +108,7 @@ export default function Play() {
         newHand.splice(position, 0, hiddenCard);
         setHand(newHand);
         
-        console.log('✅ Correct! New hand:', newHand);
+        console.log('✅ Correct! Card added to hand:', newHand);
 
         if (!over) {
           try {
@@ -126,16 +127,16 @@ export default function Play() {
           setHiddenCard(null);
         }
       } else {
-        // 猜错了
-        console.log('❌ Wrong guess!');
+        // 猜错了 - 卡牌被丢弃，不加入手牌
+        console.log('❌ Wrong guess! Card discarded.');
         setWrongGuess(true);
         setTimeout(() => setWrongGuess(false), 500);
 
         if (!over) {
-          // 猜错后进入下一轮，获取新卡片
+          // 猜错后直接获取下一张新卡片，当前卡片被丢弃
           try {
             const nextRes = await axios.get(`/api/games/${currentGameId.current}/next`);
-            console.log('🎴 Next card after wrong guess:', nextRes.data);
+            console.log('🎴 Next card after wrong guess (previous discarded):', nextRes.data);
             setHiddenCard(nextRes.data);
             setRoundIndex(prev => prev + 1);
           } catch (nextErr) {
@@ -154,13 +155,13 @@ export default function Play() {
     }
   };
 
-  // 超时处理 - 修复后的版本
+  // 超时处理 - 卡牌被丢弃
   const handleTimeUp = async () => {
-    console.log('⏰ Time up!');
+    console.log('⏰ Time up! Card will be discarded.');
     if (!hiddenCard || !currentGameId.current || isGameOver) return;
     
     try {
-      // 首先尝试专门的超时API
+      // 超时处理：卡牌被丢弃，不加入手牌，增加错误计数
       let res;
       try {
         res = await axios.post(`/api/games/${currentGameId.current}/timeout`, {
@@ -181,7 +182,7 @@ export default function Play() {
         finalStatus: status,
       } = res.data;
 
-      console.log(`⏰ Timeout result:`, { newWrongCount, over, status });
+      console.log(`⏰ Timeout result: Card discarded, wrong count: ${newWrongCount}`);
 
       setWrongCount(newWrongCount);
       setIsGameOver(over);
@@ -193,9 +194,9 @@ export default function Play() {
 
       if (!over) {
         try {
-          // 超时后进入下一轮，获取新卡片
+          // 超时后获取下一张新卡片，当前卡片被永久丢弃
           const nextRes = await axios.get(`/api/games/${currentGameId.current}/next`);
-          console.log('🎴 Next card after timeout:', nextRes.data);
+          console.log('🎴 Next card after timeout (previous discarded permanently):', nextRes.data);
           setHiddenCard(nextRes.data);
           setRoundIndex(prev => prev + 1);
         } catch (nextErr) {
@@ -214,11 +215,52 @@ export default function Play() {
   };
 
   // 重新开始游戏
-  const handleRestart = () => {
-    console.log('🔄 Restarting game...');
-    initialized.current = false;
-    currentGameId.current = null;
-    window.location.reload();
+  const handleStartNewGame = async () => {
+    console.log('🔄 Starting new game...');
+    
+    try {
+      setLoading(true);
+      setError('');
+      
+      // 重置所有状态
+      setGameId(null);
+      setHand([]);
+      setHiddenCard(null);
+      setWrongCount(0);
+      setIsGameOver(false);
+      setFinalStatus('');
+      setWrongGuess(false);
+      setRoundIndex(0);
+      
+      // 创建新游戏
+      const res = await axios.post('/api/games', {}, { withCredentials: true });
+      const { gameId, hand: initialHand } = res.data;
+      if (!gameId) {
+        throw new Error('No gameId returned from create game API');
+      }
+      console.log(`🎯 New game created: ${gameId}`);
+      console.log('🃏 Initial hand:', initialHand);
+      
+      setGameId(gameId);
+      currentGameId.current = gameId;
+      setHand(initialHand);
+
+      // 获取第一张待猜卡
+      const nextRes = await axios.get(`/api/games/${gameId}/next`, { withCredentials: true });
+      console.log('🎴 First card:', nextRes.data);
+      
+      setHiddenCard(nextRes.data);
+      setRoundIndex(0);
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to start new game:', err);
+      if (err.response?.status === 401) {
+        setError('请先登录');
+      } else {
+        setError('启动新游戏失败，请重试');
+      }
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -260,7 +302,7 @@ export default function Play() {
           <h2 style={{ color: '#e74c3c', marginBottom: '1rem' }}>⚠️ 出错了</h2>
           <p style={{ marginBottom: '1.5rem' }}>{error}</p>
           <button
-            onClick={handleRestart}
+            onClick={handleStartNewGame}
             style={{
               background: '#3498db',
               color: 'white',
@@ -287,47 +329,154 @@ export default function Play() {
           background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: '20px',
           margin: '2rem auto',
-          maxWidth: '500px',
+          maxWidth: '600px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
         }}>
           {finalStatus === 'won' ? (
             <>
-              <h2 style={{ color: '#27ae60', fontSize: '2rem', marginBottom: '1rem' }}>
+              <h2 style={{ color: '#27ae60', fontSize: '2.5rem', marginBottom: '1rem' }}>
                 🎉 恭喜胜利！🎉
               </h2>
-              <p style={{ marginBottom: '2rem', fontSize: '1.1rem' }}>
-                您成功排列了所有卡片！<br/>
-                失误次数：{wrongCount}/3
+              <p style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>
+                您成功完成了这轮游戏！
+              </p>
+              <div style={{
+                background: 'linear-gradient(135deg, #4caf50, #8bc34a)',
+                color: 'white',
+                padding: '1.5rem',
+                borderRadius: '15px',
+                margin: '2rem 0',
+                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)'
+              }}>
+                <h3 style={{ margin: '0 0 1rem 0' }}>🏆 游戏统计</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{hand.length}</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>获得卡牌</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{wrongCount}</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>失误次数</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>#{gameId}</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>游戏编号</div>
+                  </div>
+                </div>
+              </div>
+              <p style={{ marginBottom: '2rem', fontSize: '1rem', color: '#7f8c8d' }}>
+                您已成功收集了所有可能的卡牌！准备挑战新的一轮吗？
               </p>
             </>
           ) : (
             <>
-              <h2 style={{ color: '#e74c3c', fontSize: '2rem', marginBottom: '1rem' }}>
+              <h2 style={{ color: '#e74c3c', fontSize: '2.5rem', marginBottom: '1rem' }}>
                 😔 游戏结束 😔
               </h2>
-              <p style={{ marginBottom: '2rem', fontSize: '1.1rem' }}>
-                您已经失误了 3 次<br/>
-                不要灰心，再试一次！
+              <p style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>
+                这轮游戏已结束
+              </p>
+              <div style={{
+                background: 'linear-gradient(135deg, #ff9800, #ff5722)',
+                color: 'white',
+                padding: '1.5rem',
+                borderRadius: '15px',
+                margin: '2rem 0',
+                boxShadow: '0 4px 15px rgba(255, 152, 0, 0.3)'
+              }}>
+                <h3 style={{ margin: '0 0 1rem 0' }}>📊 游戏统计</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{hand.length}</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>获得卡牌</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>3</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>失误次数</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>#{gameId}</div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>游戏编号</div>
+                  </div>
+                </div>
+              </div>
+              <p style={{ marginBottom: '2rem', fontSize: '1rem', color: '#7f8c8d' }}>
+                不要灰心！每次游戏都是学习的机会。准备开始新的挑战吗？
               </p>
             </>
           )}
           
-          <button
-            onClick={handleRestart}
-            style={{
-              background: 'linear-gradient(45deg, #3498db, #2980b9)',
-              color: 'white',
-              padding: '1rem 2rem',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(52, 152, 219, 0.3)'
-            }}
-          >
-            🔄 再玩一次
-          </button>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            marginTop: '2rem'
+          }}>
+            <button
+              onClick={handleStartNewGame}
+              disabled={loading}
+              style={{
+                background: loading ? '#bdc3c7' : 'linear-gradient(45deg, #3498db, #2980b9)',
+                color: 'white',
+                padding: '1rem 2rem',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '1.2rem',
+                fontWeight: 'bold',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: loading ? 'none' : '0 4px 15px rgba(52, 152, 219, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {loading ? '🔄 启动中...' : '🎮 开始新游戏'}
+            </button>
+            
+            <Link
+              to="/profile"
+              style={{
+                background: 'linear-gradient(45deg, #9b59b6, #8e44ad)',
+                color: 'white',
+                padding: '1rem 2rem',
+                borderRadius: '10px',
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                textDecoration: 'none',
+                display: 'inline-block',
+                boxShadow: '0 4px 15px rgba(155, 89, 182, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              📊 查看统计
+            </Link>
+            
+            <Link
+              to="/demo"
+              style={{
+                background: 'linear-gradient(45deg, #27ae60, #2ecc71)',
+                color: 'white',
+                padding: '1rem 2rem',
+                borderRadius: '10px',
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                textDecoration: 'none',
+                display: 'inline-block',
+                boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🎯 练习模式
+            </Link>
+          </div>
+          
+          <p style={{ 
+            marginTop: '2rem', 
+            fontSize: '0.9rem', 
+            color: '#95a5a6',
+            fontStyle: 'italic'
+          }}>
+            💡 提示：每轮游戏都有不同的卡牌组合，继续挑战提升您的技巧！
+          </p>
         </div>
       </div>
     );
