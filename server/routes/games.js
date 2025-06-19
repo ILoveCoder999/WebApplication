@@ -6,22 +6,22 @@ import { db } from '../db/init.js';
 const router = express.Router();
 
 // 验证用户是否已登录
-function auth(req, res, next) {
-  if (!req.session.userId) {
-    return res.status(401).json({ message: 'login required' });
+function requireAuth(req, res, next) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: 'Authentication required' });
   }
   next();
 }
 
 // 1. 创建一局游戏，返回初始 3 张卡
-router.post('/games', auth, (req, res) => {
+router.post('/games', requireAuth, (req, res) => {
   try {
     // 插入新游戏
     const gameStmt = db.prepare(`
       INSERT INTO games (userId, startedAt, status, wrongCount) 
       VALUES (?, ?, ?, ?)
     `);
-    const result = gameStmt.run(req.session.userId, new Date().toISOString(), 'ongoing', 0);
+    const result = gameStmt.run(req.user.id, new Date().toISOString(), 'ongoing', 0);
     const gameId = result.lastInsertRowid;
 
     // 随机取 3 张卡作为初始手牌，按 badLuckIdx 排序
@@ -34,15 +34,15 @@ router.post('/games', auth, (req, res) => {
     // 按 badLuckIdx 排序
     cards.sort((a, b) => a.badLuckIdx - b.badLuckIdx);
     
-    // 插入到 rounds 表
+    // 插入到 rounds 表，使用 orderNo = -1 表示初始手牌
     cards.forEach((card, i) => {
       db.prepare(`
         INSERT INTO rounds (gameId, cardId, orderNo, guessedCorrect) 
         VALUES (?, ?, ?, ?)
-      `).run(gameId, card.id, i, 1);
+      `).run(gameId, card.id, -1, 1); // orderNo = -1 表示初始卡牌
     });
 
-    console.log(`✅ Game ${gameId} created with cards:`, cards.map(c => `${c.title} (${c.badLuckIdx})`));
+    console.log(`✅ Game ${gameId} created with initial cards:`, cards.map(c => `${c.title} (${c.badLuckIdx})`));
     res.json({ gameId, hand: cards });
   } catch (error) {
     console.error('Error creating game:', error);
@@ -50,9 +50,9 @@ router.post('/games', auth, (req, res) => {
   }
 });
 
-router.get('/games', auth, (req, res) => {
+router.get('/games', requireAuth, (req, res) => {
   try {
-    const games = db.prepare('SELECT * FROM games WHERE userId = ?').all(req.session.userId);
+    const games = db.prepare('SELECT * FROM games WHERE userId = ?').all(req.user.id);
     res.json(games);
   } catch (error) {
     console.error('Error fetching games:', error);
@@ -60,9 +60,8 @@ router.get('/games', auth, (req, res) => {
   }
 });
 
-
 // 2. 获取下一张"待猜卡"（随机一张卡）
-router.get('/games/:id/next', auth, (req, res) => {
+router.get('/games/:id/next', requireAuth, (req, res) => {
   try {
     const gameId = Number(req.params.id);
     
@@ -70,7 +69,7 @@ router.get('/games/:id/next', auth, (req, res) => {
     const game = db.prepare(`
       SELECT * FROM games 
       WHERE id = ? AND userId = ? AND status = 'ongoing'
-    `).get(gameId, req.session.userId);
+    `).get(gameId, req.user.id);
     
     if (!game) {
       return res.status(404).json({ message: 'Game not found or finished' });
@@ -112,7 +111,7 @@ router.get('/games/:id/next', auth, (req, res) => {
 });
 
 // 3. 提交本回合"猜测"
-router.post('/games/:id/guess', auth, (req, res) => {
+router.post('/games/:id/guess', requireAuth, (req, res) => {
   try {
     const gameId = Number(req.params.id);
     const { position, cardId } = req.body;
@@ -126,22 +125,31 @@ router.post('/games/:id/guess', auth, (req, res) => {
     const game = db.prepare(`
       SELECT * FROM games 
       WHERE id = ? AND userId = ? AND status = 'ongoing'
-    `).get(gameId, req.session.userId);
+    `).get(gameId, req.user.id);
     
     if (!game) {
       return res.status(400).json({ message: 'Game not found or already finished' });
     }
 
-    // 查询当前"已猜对"的手牌
+    // 查询当前"已猜对"的手牌（不包括初始卡牌）
     const correctRounds = db.prepare(`
       SELECT r.cardId, r.orderNo, c.badLuckIdx
       FROM rounds r
       JOIN cards c ON r.cardId = c.id
-      WHERE r.gameId = ? AND r.guessedCorrect = 1
+      WHERE r.gameId = ? AND r.guessedCorrect = 1 AND r.orderNo >= 0
       ORDER BY r.orderNo
     `).all(gameId);
 
-    const handSize = correctRounds.length;
+    // 获取初始手牌
+    const initialCards = db.prepare(`
+      SELECT r.cardId, c.title, c.badLuckIdx
+      FROM rounds r
+      JOIN cards c ON r.cardId = c.id
+      WHERE r.gameId = ? AND r.orderNo = -1
+      ORDER BY c.badLuckIdx
+    `).all(gameId);
+
+    const currentHandSize = initialCards.length + correctRounds.length;
 
     // 查询待猜卡的 badLuckIdx
     const newCard = db.prepare('SELECT badLuckIdx FROM cards WHERE id = ?').get(cardId);
@@ -150,31 +158,40 @@ router.post('/games/:id/guess', auth, (req, res) => {
     }
     const newIdx = newCard.badLuckIdx;
 
+    // 构建当前完整手牌（初始卡牌 + 已猜对的卡牌）
+    const fullHand = [...initialCards, ...correctRounds.map(r => ({ badLuckIdx: r.badLuckIdx }))];
+    fullHand.sort((a, b) => a.badLuckIdx - b.badLuckIdx);
+
     // 判断插卡是否正确
     let isCorrect = false;
     if (position === -1) {
       // 超时
       isCorrect = false;
-    } else if (handSize === 0) {
+    } else if (fullHand.length === 0) {
       isCorrect = true;
     } else if (position === 0) {
-      isCorrect = newIdx <= correctRounds[0].badLuckIdx;
-    } else if (position >= handSize) {
-      isCorrect = correctRounds[handSize - 1].badLuckIdx <= newIdx;
+      isCorrect = newIdx <= fullHand[0].badLuckIdx;
+    } else if (position >= fullHand.length) {
+      isCorrect = fullHand[fullHand.length - 1].badLuckIdx <= newIdx;
     } else {
-      const leftIdx = correctRounds[position - 1].badLuckIdx;
-      const rightIdx = correctRounds[position].badLuckIdx;
+      const leftIdx = fullHand[position - 1].badLuckIdx;
+      const rightIdx = fullHand[position].badLuckIdx;
       isCorrect = leftIdx <= newIdx && newIdx <= rightIdx;
     }
 
+    // 获取当前轮次编号
+    const currentRound = db.prepare(`
+      SELECT COUNT(*) as count FROM rounds 
+      WHERE gameId = ? AND orderNo >= 0
+    `).get(gameId).count;
+
     // 记录本回合
     const guessed = isCorrect ? 1 : 0;
-    const insertPosition = position === -1 ? handSize : position; // 超时时放在最后
     
     db.prepare(`
       INSERT INTO rounds (gameId, cardId, orderNo, guessedCorrect) 
       VALUES (?, ?, ?, ?)
-    `).run(gameId, cardId, insertPosition, guessed);
+    `).run(gameId, cardId, currentRound, guessed);
 
     // 更新游戏状态
     let updatedWrongCount = game.wrongCount;
@@ -188,8 +205,8 @@ router.post('/games/:id/guess', auth, (req, res) => {
         isGameOver = true;
       }
     } else {
-      // 检查是否胜利 (6张卡片)
-      if (handSize + 1 >= 6) {
+      // 检查是否胜利 (6张卡片：3张初始 + 3张猜对)
+      if (currentHandSize + 1 >= 6) {
         finalStatus = 'won';
         isGameOver = true;
       }
@@ -211,8 +228,8 @@ router.post('/games/:id/guess', auth, (req, res) => {
     }
 
     const logMessage = position === -1 ? 
-      `⏰ Game ${gameId}: TIMEOUT` : 
-      `${isCorrect ? '✅' : '❌'} Game ${gameId}: ${isCorrect ? 'CORRECT' : 'WRONG'} guess at position ${position}`;
+      `⏰ Game ${gameId}: TIMEOUT - Round ${currentRound}` : 
+      `${isCorrect ? '✅' : '❌'} Game ${gameId}: ${isCorrect ? 'CORRECT' : 'WRONG'} guess at position ${position} - Round ${currentRound}`;
     console.log(logMessage);
 
     res.json({
@@ -220,7 +237,8 @@ router.post('/games/:id/guess', auth, (req, res) => {
       wrongCount: updatedWrongCount,
       isGameOver,
       finalStatus,
-      handSize: handSize + (isCorrect ? 1 : 0)
+      handSize: currentHandSize + (isCorrect ? 1 : 0),
+      roundNumber: currentRound
     });
   } catch (error) {
     console.error('Error processing guess:', error);
@@ -228,7 +246,7 @@ router.post('/games/:id/guess', auth, (req, res) => {
   }
 });
 
-// 4. 查询历史：返回当前用户所有局
+// 4. 查询历史：返回当前用户所有局的详细信息
 router.get('/games/history', auth, (req, res) => {
   try {
     const games = db.prepare(`
@@ -241,13 +259,112 @@ router.get('/games/history', auth, (req, res) => {
       FROM games 
       WHERE userId = ? 
       ORDER BY startedAt DESC
-      LIMIT 20
+      LIMIT 50
     `).all(req.session.userId);
     
-    res.json(games);
+    // 为每个游戏获取详细的卡牌信息
+    const gamesWithDetails = games.map(game => {
+      // 获取初始卡牌（orderNo = -1）
+      const initialCards = db.prepare(`
+        SELECT c.id, c.title, c.badLuckIdx, r.orderNo, r.guessedCorrect
+        FROM rounds r
+        JOIN cards c ON r.cardId = c.id
+        WHERE r.gameId = ? AND r.orderNo = -1
+        ORDER BY c.badLuckIdx
+      `).all(game.id);
+
+      // 获取游戏过程中的卡牌（orderNo >= 0）
+      const gameCards = db.prepare(`
+        SELECT c.id, c.title, c.badLuckIdx, r.orderNo, r.guessedCorrect
+        FROM rounds r
+        JOIN cards c ON r.cardId = c.id
+        WHERE r.gameId = ? AND r.orderNo >= 0
+        ORDER BY r.orderNo
+      `).all(game.id);
+
+      // 统计信息
+      const totalCards = initialCards.length + gameCards.filter(c => c.guessedCorrect === 1).length;
+      const totalRounds = gameCards.length;
+      const wonRounds = gameCards.filter(c => c.guessedCorrect === 1).length;
+
+      return {
+        ...game,
+        initialCards,
+        gameCards,
+        stats: {
+          totalCards,
+          totalRounds,
+          wonRounds,
+          lostRounds: totalRounds - wonRounds
+        }
+      };
+    });
+    
+    res.json(gamesWithDetails);
   } catch (error) {
     console.error('Error fetching game history:', error);
     res.status(500).json({ message: 'Failed to fetch game history' });
+  }
+});
+
+// 5. 获取特定游戏的详细信息
+router.get('/games/:id/details', requireAuth, (req, res) => {
+  try {
+    const gameId = Number(req.params.id);
+    
+    // 获取游戏基本信息
+    const game = db.prepare(`
+      SELECT * FROM games 
+      WHERE id = ? AND userId = ?
+    `).get(gameId, req.user.id);
+    
+    if (!game) {
+      return res.status(404).json({ message: 'Game not found' });
+    }
+
+    // 获取初始卡牌
+    const initialCards = db.prepare(`
+      SELECT c.id, c.title, c.badLuckIdx, r.orderNo, r.guessedCorrect
+      FROM rounds r
+      JOIN cards c ON r.cardId = c.id
+      WHERE r.gameId = ? AND r.orderNo = -1
+      ORDER BY c.badLuckIdx
+    `).all(gameId);
+
+    // 获取游戏轮次卡牌
+    const gameCards = db.prepare(`
+      SELECT c.id, c.title, c.badLuckIdx, r.orderNo, r.guessedCorrect
+      FROM rounds r
+      JOIN cards c ON r.cardId = c.id
+      WHERE r.gameId = ? AND r.orderNo >= 0
+      ORDER BY r.orderNo
+    `).all(gameId);
+
+    res.json({
+      ...game,
+      initialCards,
+      gameCards
+    });
+  } catch (error) {
+    console.error('Error fetching game details:', error);
+    res.status(500).json({ message: 'Failed to fetch game details' });
+  }
+});
+
+// 6. 超时处理专用API
+router.post('/games/:id/timeout', requireAuth, (req, res) => {
+  try {
+    const gameId = Number(req.params.id);
+    const { cardId } = req.body;
+
+    // 直接调用猜测API，位置设为-1表示超时
+    return router.handle({
+      ...req,
+      body: { position: -1, cardId }
+    }, res);
+  } catch (error) {
+    console.error('Error handling timeout:', error);
+    res.status(500).json({ message: 'Failed to handle timeout' });
   }
 });
 
